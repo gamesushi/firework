@@ -1,34 +1,34 @@
-/*
-Copyright © 2022 NianBroken. All rights reserved.
-Github：https://github.com/NianBroken/Firework_Simulator
-Gitee：https://gitee.com/nianbroken/Firework_Simulator
-本项目采用 Apache-2.0 许可证
-简而言之，你可以自由使用、修改和分享本项目的代码，但前提是在其衍生作品中必须保留原始许可证和版权信息，并且必须以相同的许可证发布所有修改过的代码。
+﻿/*
+Copyright 漏 2022 NianBroken. All rights reserved.
+Github锛歨ttps://github.com/NianBroken/Firework_Simulator
+Gitee锛歨ttps://gitee.com/nianbroken/Firework_Simulator
+鏈」鐩噰鐢?Apache-2.0 璁稿彲璇?
+绠€鑰岃█涔嬶紝浣犲彲浠ヨ嚜鐢变娇鐢ㄣ€佷慨鏀瑰拰鍒嗕韩鏈」鐩殑浠ｇ爜锛屼絾鍓嶆彁鏄湪鍏惰鐢熶綔鍝佷腑蹇呴』淇濈暀鍘熷璁稿彲璇佸拰鐗堟潈淇℃伅锛屽苟涓斿繀椤讳互鐩稿悓鐨勮鍙瘉鍙戝竷鎵€鏈変慨鏀硅繃鐨勪唬鐮併€?
 */
 
-/* 自定义滚动条样式 */
+/* 鑷畾涔夋粴鍔ㄦ潯鏍峰紡 */
 ::-webkit-scrollbar {
-	/* 选择整体滚动条 */
+	/* 閫夋嫨鏁翠綋婊氬姩鏉?*/
 	width: 0px;
-	/* 设置滚动条的宽度 */
+	/* 璁剧疆婊氬姩鏉＄殑瀹藉害 */
 }
 
 ::-webkit-scrollbar-track {
-	/* 选择滚动条背景 */
+	/* 閫夋嫨婊氬姩鏉¤儗鏅?*/
 	background: #f1f1f1;
-	/* 设置滚动条背景颜色 */
+	/* 璁剧疆婊氬姩鏉¤儗鏅鑹?*/
 }
 
 ::-webkit-scrollbar-thumb {
-	/* 选择滚动条手柄 */
+	/* 閫夋嫨婊氬姩鏉℃墜鏌?*/
 	background: #888;
-	/* 设置滚动条手柄的颜色 */
+	/* 璁剧疆婊氬姩鏉℃墜鏌勭殑棰滆壊 */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	/* 鼠标悬停时选择滚动条手柄 */
+	/* 榧犳爣鎮仠鏃堕€夋嫨婊氬姩鏉℃墜鏌?*/
 	background: #555;
-	/* 设置鼠标悬停时滚动条手柄的颜色 */
+	/* 璁剧疆榧犳爣鎮仠鏃舵粴鍔ㄦ潯鎵嬫焺鐨勯鑹?*/
 }
 
 * {
@@ -252,11 +252,7 @@ body {
 	background: rgba(255, 255, 255, 0.05);
 	border-radius: 4px;
 	border: 1px solid rgba(255, 255, 255, 0.1);
-	overflow: hidden;
-}
-
-.word-shell-submenu.hide {
-	display: none;
+	transition: all 0.3s;
 }
 
 .word-list {
@@ -514,101 +510,4 @@ body {
 	transform: scale(1, 1);
 	transition-timing-function: ease-out;
 	transition-duration: 0.4s;
-}
-
-/* Custom Dialog */
-.custom-dialog {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 2000;
-	display: none;
-	align-items: center;
-	justify-content: center;
-}
-
-.custom-dialog.active {
-	display: flex;
-}
-
-.custom-dialog__overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background: rgba(0, 0, 0, 0.7);
-}
-
-.custom-dialog__box {
-	position: relative;
-	background: rgba(20, 20, 20, 0.95);
-	border: 1px solid rgba(255, 255, 255, 0.3);
-	border-radius: 8px;
-	padding: 24px;
-	min-width: 320px;
-	max-width: 90%;
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-}
-
-.custom-dialog__header {
-	font-size: 1.1em;
-	color: #fff;
-	margin-bottom: 16px;
-	text-align: center;
-}
-
-.custom-dialog__input {
-	width: 100%;
-	padding: 8px 12px;
-	font-size: 1rem;
-	font-family: inherit;
-	color: #fff;
-	background: rgba(255, 255, 255, 0.1);
-	border: 1px solid rgba(255, 255, 255, 0.3);
-	border-radius: 4px;
-	margin-bottom: 16px;
-	outline: none;
-}
-
-.custom-dialog__input:focus {
-	border-color: rgba(255, 255, 255, 0.5);
-	background: rgba(255, 255, 255, 0.15);
-}
-
-.custom-dialog__buttons {
-	display: flex;
-	gap: 12px;
-	justify-content: flex-end;
-}
-
-.custom-dialog__btn {
-	padding: 8px 20px;
-	font-family: inherit;
-	font-size: 0.9rem;
-	border: 1px solid rgba(255, 255, 255, 0.3);
-	border-radius: 4px;
-	cursor: pointer;
-	transition: all 0.2s;
-}
-
-.custom-dialog__btn--cancel {
-	background: rgba(255, 255, 255, 0.1);
-	color: rgba(255, 255, 255, 0.7);
-}
-
-.custom-dialog__btn--cancel:hover {
-	background: rgba(255, 255, 255, 0.15);
-	color: #fff;
-}
-
-.custom-dialog__btn--confirm {
-	background: rgba(255, 255, 255, 0.2);
-	color: #fff;
-}
-
-.custom-dialog__btn--confirm:hover {
-	background: rgba(255, 255, 255, 0.3);
 }

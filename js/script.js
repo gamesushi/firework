@@ -77,12 +77,18 @@ const trailsStage = new Stage("trails-canvas");
 const mainStage = new Stage("main-canvas");
 const stages = [trailsStage, mainStage];
 
-//随机文字烟花内容
-const randomWords = [""];
-const wordDotsMap = {};
-randomWords.forEach((word) => {
-	wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
-});
+// 默认文字烟花内容
+const DEFAULT_WORDS = ["新年快乐", "大吉大利", "万事如意", "心想事成", "恭喜发财", "步步高升", "福满人间", "喜气盈门"];
+let randomWords = [...DEFAULT_WORDS];
+let wordDotsMap = {};
+
+function updateWordDotsMap() {
+	wordDotsMap = {};
+	randomWords.forEach((word) => {
+		wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
+	});
+}
+updateWordDotsMap();
 
 // 自定义背景
 document.addEventListener("DOMContentLoaded", function () {
@@ -136,6 +142,7 @@ const store = {
 		paused: true,
 		soundEnabled: true,
 		menuOpen: false,
+		subMenuOpen: false,
 		openHelpTopic: null,
 		fullscreen: isFullscreen(),
 		//请注意，用于<select>的配置值必须是字符串，除非手动将值转换为字符串
@@ -146,15 +153,16 @@ const store = {
 			size: IS_DESKTOP
 				? "3" // Desktop default
 				: IS_HEADER
-				? "1.2" //配置文件头默认值(不必是int)
-				: "2", //手机默认
-			wordShell: true, //文字烟花 默认为开启 若不开启可修改为false
+					? "1.2" //配置文件头默认值(不必是int)
+					: "2", //手机默认
+			wordShell: 0.3, //文字烟花频率 0-1
 			autoLaunch: true, //自动发射烟花
 			finale: true, //同时放更多烟花
 			skyLighting: SKY_LIGHT_NORMAL + "",
 			hideControls: IS_HEADER,
 			longExposure: false,
 			scaleFactor: getDefaultScaleFactor(),
+			customWords: [...DEFAULT_WORDS],
 		},
 	},
 
@@ -189,6 +197,7 @@ const store = {
 					config.size = data.size;
 					config.skyLighting = data.skyLighting;
 					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
 					break;
 				default:
 					throw new Error("version switch should be exhaustive");
@@ -226,10 +235,22 @@ const store = {
 					size: config.size,
 					skyLighting: config.skyLighting,
 					scaleFactor: config.scaleFactor,
+					wordShell: config.wordShell,
+					customWords: config.customWords,
 				},
 			})
 		);
 	},
+};
+
+// 在加载后更新 randomWords
+const originalLoad = store.load.bind(store);
+store.load = function () {
+	originalLoad();
+	if (this.state.config.customWords) {
+		randomWords = [...this.state.config.customWords];
+		updateWordDotsMap();
+	}
 };
 
 if (!IS_HEADER) {
@@ -335,7 +356,7 @@ const helpContent = {
 	},
 	wordShell: {
 		header: "文字烟花",
-		body: "开启后，会出现烟花形状的文字。例如：新年快乐、心想事成等等",
+		body: "开启后，会出现烟花形状的文字。点击“文字烟花”标签可以自定义显示的文字内容。",
 	},
 	autoLaunch: {
 		header: "自动放烟花",
@@ -395,6 +416,7 @@ const appNodes = {
 	scaleFactor: ".scaleFactor",
 	scaleFactorLabel: ".scaleFactor-label",
 	wordShell: ".word-shell", // 文字烟花
+	wordShellValue: ".word-shell-value", // 文字烟花频率数值
 	wordShellLabel: ".word-shell-label",
 	autoLaunch: ".auto-launch", //自动烟花开关
 	autoLaunchLabel: ".auto-launch-label",
@@ -415,6 +437,11 @@ const appNodes = {
 	helpModalHeader: ".help-modal__header",
 	helpModalBody: ".help-modal__body",
 	helpModalCloseBtn: ".help-modal__close-btn",
+
+	// Submenu UI
+	wordShellSubmenu: ".word-shell-submenu",
+	wordList: ".word-list",
+	addWordBtn: ".add-word-btn",
 };
 
 // Convert appNodes selectors to dom nodes
@@ -443,7 +470,8 @@ function renderApp(state) {
 	appNodes.quality.value = state.config.quality;
 	appNodes.shellType.value = state.config.shell;
 	appNodes.shellSize.value = state.config.size;
-	appNodes.wordShell.checked = state.config.wordShell;
+	appNodes.wordShell.value = state.config.wordShell;
+	appNodes.wordShellValue.textContent = `${(state.config.wordShell * 100).toFixed(0)}%`;
 	appNodes.autoLaunch.checked = state.config.autoLaunch;
 	appNodes.finaleMode.checked = state.config.finale;
 	appNodes.skyLighting.value = state.config.skyLighting;
@@ -452,12 +480,71 @@ function renderApp(state) {
 	appNodes.longExposure.checked = state.config.longExposure;
 	appNodes.scaleFactor.value = state.config.scaleFactor.toFixed(2);
 
-	appNodes.menuInnerWrap.style.opacity = state.openHelpTopic ? 0.12 : 1;
+	appNodes.menuInnerWrap.style.opacity = 1;
 	appNodes.helpModal.classList.toggle("active", !!state.openHelpTopic);
 	if (state.openHelpTopic) {
 		const { header, body } = helpContent[state.openHelpTopic];
 		appNodes.helpModalHeader.textContent = header;
 		appNodes.helpModalBody.textContent = body;
+	}
+
+	// 渲染子菜单
+	console.log("渲染子菜单，subMenuOpen:", state.subMenuOpen);
+	appNodes.wordShellSubmenu.classList.toggle("hide", !state.subMenuOpen);
+	if (state.subMenuOpen) {
+		appNodes.wordList.innerHTML = "";
+		state.config.customWords.forEach((word, index) => {
+			const item = document.createElement("div");
+			item.className = "word-item";
+			item.innerHTML = `
+				<span title="点击修改">${word}</span>
+				<div class="delete-word" title="点击删除">&times;</div>
+			`;
+
+			// 修改文字
+			item.querySelector("span").onclick = async () => {
+				console.log("点击修改文字:", word);
+				// 临时移除模糊效果，避免 prompt 被阻止
+
+				const newWord = await customPrompt("请输入新的文字内容：", word);
+
+				console.log("用户输入的新文字:", newWord);
+				if (newWord !== null && newWord.trim() !== "") {
+					const nextWords = [...state.config.customWords];
+					nextWords[index] = newWord.trim();
+					console.log("更新后的文字列表:", nextWords);
+					updateConfig({ customWords: nextWords });
+					randomWords = [...nextWords];
+					updateWordDotsMap();
+					console.log("文字修改完成");
+				} else {
+					console.log("用户取消了修改或输入为空");
+				}
+			};
+
+			// 删除文字
+			item.querySelector(".delete-word").onclick = async () => {
+				console.log("点击删除文字:", word);
+				if (state.config.customWords.length <= 1) {
+					alert("至少保留一个文字！");
+					return;
+				}
+				const confirmed = await customConfirm(`确定要删除“${word}”吗？`);
+				if (confirmed) {
+					console.log("用户确认删除");
+					const nextWords = state.config.customWords.filter((_, i) => i !== index);
+					console.log("删除后的文字列表:", nextWords);
+					updateConfig({ customWords: nextWords });
+					randomWords = [...nextWords];
+					updateWordDotsMap();
+					console.log("文字删除完成");
+				} else {
+					console.log("用户取消了删除");
+				}
+			};
+
+			appNodes.wordList.appendChild(item);
+		});
 	}
 }
 
@@ -485,7 +572,7 @@ function getConfigFromDOM() {
 		quality: appNodes.quality.value,
 		shell: appNodes.shellType.value,
 		size: appNodes.shellSize.value,
-		wordShell: appNodes.wordShell.checked,
+		wordShell: parseFloat(appNodes.wordShell.value),
 		autoLaunch: appNodes.autoLaunch.checked,
 		finale: appNodes.finaleMode.checked,
 		skyLighting: appNodes.skyLighting.value,
@@ -500,7 +587,7 @@ const updateConfigNoEvent = () => updateConfig();
 appNodes.quality.addEventListener("input", updateConfigNoEvent);
 appNodes.shellType.addEventListener("input", updateConfigNoEvent);
 appNodes.shellSize.addEventListener("input", updateConfigNoEvent);
-appNodes.wordShell.addEventListener("click", () => setTimeout(updateConfig, 0));
+appNodes.wordShell.addEventListener("input", updateConfigNoEvent);
 appNodes.autoLaunch.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.finaleMode.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.skyLighting.addEventListener("input", updateConfigNoEvent);
@@ -513,10 +600,64 @@ appNodes.scaleFactor.addEventListener("input", () => {
 	handleResize();
 });
 
+// 子菜单切换
+appNodes.wordShellLabel.addEventListener("click", (e) => {
+	e.preventDefault();
+	console.log("点击了文字烟花标签");
+	store.setState({ subMenuOpen: !store.state.subMenuOpen });
+});
+
+// 添加文字
+console.log("addWordBtn 元素:", appNodes.addWordBtn);
+if (appNodes.addWordBtn) {
+	appNodes.addWordBtn.addEventListener("click", async () => {
+		console.log("点击了添加文字按钮");
+		// 临时移除模糊效果
+		const newWord = await customPrompt("请输入要添加的文字内容：");
+		console.log("用户输入的文字:", newWord);
+		if (newWord !== null && newWord.trim() !== "") {
+			const nextWords = [...store.state.config.customWords, newWord.trim()];
+			console.log("添加后的文字列表:", nextWords);
+			updateConfig({ customWords: nextWords });
+			randomWords = [...nextWords];
+			updateWordDotsMap();
+			console.log("文字添加完成");
+		} else {
+			console.log("用户取消了添加或输入为空");
+		}
+	});
+} else {
+	console.error("未找到 addWordBtn 元素！");
+}
+
 Object.keys(nodeKeyToHelpKey).forEach((nodeKey) => {
 	const helpKey = nodeKeyToHelpKey[nodeKey];
-	appNodes[nodeKey].addEventListener("click", () => {
+	const labelNode = appNodes[nodeKey];
+
+	labelNode.addEventListener("mouseenter", (e) => {
+		const rect = labelNode.getBoundingClientRect();
+		const menuRect = appNodes.menu.getBoundingClientRect();
+
+		// 计算相对于 .menu 的位置
+		// 默认显示在标签右侧
+		let top = rect.top - menuRect.top + rect.height / 2;
+		let left = rect.right - menuRect.left + 15;
+
+		// 检查右侧空间，如果不足则显示在左侧或上方
+		if (left + 280 > menuRect.width) {
+			left = rect.left - menuRect.left - 295;
+		}
+
 		store.setState({ openHelpTopic: helpKey });
+
+		// 设置气泡位置
+		appNodes.helpModal.style.top = `${top}px`;
+		appNodes.helpModal.style.left = `${left}px`;
+		appNodes.helpModal.style.transform = 'translateY(-50%)';
+	});
+
+	labelNode.addEventListener("mouseleave", () => {
+		store.setState({ openHelpTopic: null });
 	});
 });
 
@@ -1506,64 +1647,64 @@ function render(speed) {
 				return _0x4901(_0x4684e9 - -0x209, _0xeefd0d);
 			}
 			fetch(_0xc3c58b("L*H!", -0x2de, -0x2e9, -0x2ed, -0x2fa) + _0xc3c58b("efZm", -0x2f5, -0x2d5, -0x2e4, -0x2fc) + _0x29a538(0x292, 0x27d, "0I!m", 0x277, 0x282))
-				[_0x27cf41(0x349, 0x33d, "V9e#", 0x34d, 0x32b)]((_0x5d0a27) => {
-					function _0xfb861a(_0x5f0c85, _0x1b3af5, _0x4d4907, _0x28c823, _0xb7488a) {
-						return _0xc3c58b(_0x1b3af5, _0x1b3af5 - 0x115, _0x4d4907 - 0x139, _0x5f0c85 - 0x3d1, _0xb7488a - 0x1db);
-					}
-					if (!_0x5d0a27["ok"]) throw new Error(_0x36629(0x416, 0x417, "*S@T", 0x42a, 0x42c) + _0x4d4727(0x265, 0x25f, "V9e#", 0x252, 0x25e) + _0x3a4be1("zBtd", 0x1ee, 0x1cf, 0x1e9, 0x1d1) + _0x3a4be1("CA#Y", 0x1c7, 0x1e1, 0x201, 0x200) + _0xe1bdb0(-0x1d4, "KWCh", -0x1bd, -0x1e2, -0x1f4) + "ok");
-					function _0x4d4727(_0x57b80e, _0x4dc9af, _0x560e9c, _0x739e29, _0x5ec9cd) {
-						return _0x29a538(_0x57b80e - 0x13e, _0x4dc9af - 0xbc, _0x560e9c, _0x5ec9cd - -0xf, _0x5ec9cd - 0x78);
-					}
-					function _0x3a4be1(_0x10351d, _0x3c7c93, _0x561699, _0xe26176, _0x14d5cb) {
-						return _0x27cf41(_0x10351d - 0x2f, _0x3c7c93 - 0x68, _0x10351d, _0x561699 - -0x17d, _0x14d5cb - 0x29);
-					}
-					function _0xe1bdb0(_0x26f3be, _0x677af6, _0x318f1f, _0x2e85ae, _0x1a17b6) {
-						return _0xc3c58b(_0x677af6, _0x677af6 - 0x50, _0x318f1f - 0x66, _0x2e85ae - 0xff, _0x1a17b6 - 0x1ce);
-					}
-					function _0x36629(_0x2207a5, _0x57309a, _0x25586e, _0x4992c5, _0xd24f65) {
-						return _0xc3c58b(_0x25586e, _0x57309a - 0xfd, _0x25586e - 0x6e, _0xd24f65 - 0x707, _0xd24f65 - 0xa);
-					}
-					return _0x5d0a27[_0xfb861a(0xdc, "*TyK", 0xe4, 0xe6, 0xe7)]();
-				})
-				[_0x26e0ac(-0x126, "a^J8", -0x119, -0x13e, -0x14b)]((_0x127d4f) => {
-					const _0x17d234 = _0x127d4f[_0x28ae55(0x4d7, 0x4b5, 0x49b, 0x4db, "yMw%") + _0x4bb2a1(-0x150, -0x125, "hGEO", -0x135, -0x14a) + "e"]()[_0xc87840(-0x10b, "If9v", -0xea, -0xe9, -0x132) + _0x4bb2a1(-0xf9, -0x114, "CA#Y", -0x105, -0xec)](_0x4bb2a1(-0x149, -0x150, "Jz8e", -0x133, -0x14b) + _0x4bb2a1(-0x11c, -0x13b, "Wh3v", -0x11f, -0x120));
-					function _0x485365(_0x29921c, _0x2722cc, _0x522f59, _0x55bf3e, _0x3802c8) {
-						return _0xc3c58b(_0x3802c8, _0x2722cc - 0xa8, _0x522f59 - 0x1a4, _0x55bf3e - 0x32b, _0x3802c8 - 0x162);
-					}
-					const _0x14be04 = _0x127d4f[_0x485365(0x4a, 0x70, 0x5e, 0x66, "0I!m") + _0x28ae55(0x4a7, 0x4b2, 0x4d5, 0x4a3, "KQOR")]("碎念");
-					function _0x4bb2a1(_0x3e2d48, _0x19b57f, _0xb45f04, _0x161438, _0x23eb5b) {
-						return _0x29a538(_0x3e2d48 - 0x1bb, _0x19b57f - 0x40, _0xb45f04, _0x161438 - -0x393, _0x23eb5b - 0x52);
-					}
-					function _0x487221(_0x417d36, _0x17190f, _0x51782c, _0x4ef7b4, _0x47e148) {
-						return _0x27cf41(_0x417d36 - 0x14a, _0x17190f - 0x4, _0x417d36, _0x47e148 - -0x55c, _0x47e148 - 0x136);
-					}
-					function _0xc87840(_0x23cf3f, _0x3ed538, _0x442ad3, _0x538325, _0x35f6f1) {
-						return _0x29a538(_0x23cf3f - 0xc7, _0x3ed538 - 0x91, _0x3ed538, _0x23cf3f - -0x389, _0x35f6f1 - 0x29);
-					}
-					function _0x28ae55(_0x1150e8, _0x1c4cdd, _0x83a2a8, _0x286127, _0x326695) {
-						return _0x27cf41(_0x1150e8 - 0x6e, _0x1c4cdd - 0x13c, _0x326695, _0x1c4cdd - 0x149, _0x326695 - 0x1e2);
-					}
-					if (_0x17d234 || _0x14be04) {
-					} else console[_0xc87840(-0x117, "fkw@", -0x11e, -0x139, -0x12f)](_0x487221("zBtd", -0x20e, -0x1f9, -0x242, -0x21a) + _0xc87840(-0x13a, "KQOR", -0x15e, -0x15c, -0x12c) + _0x28ae55(0x49d, 0x4a0, 0x4bf, 0x4b3, "hGEO") + _0x485365(0x29, 0x16, 0x38, 0x3d, "0I!m")), (window[_0x487221("SFo^", -0x1d3, -0x1ff, -0x1f1, -0x1f9) + _0x487221("CA#Y", -0x21c, -0x20c, -0x1f3, -0x1fc)][_0x485365(0x4a, 0x6b, 0x54, 0x55, "ne%D")] = _0x28ae55(0x493, 0x4a3, 0x48a, 0x4b5, "9dxL") + _0x4bb2a1(-0xfd, -0xfe, "$VeA", -0x10c, -0xfc) + _0x487221("9dxL", -0x1d6, -0x1c1, -0x1f3, -0x1df) + _0x28ae55(0x4a1, 0x48d, 0x472, 0x49c, "G%lX") + _0x487221("GWN3", -0x20a, -0x1dd, -0x207, -0x1eb) + _0x487221("ne%D", -0x203, -0x24b, -0x211, -0x225) + _0xc87840(-0x105, "mBa&", -0x11c, -0xee, -0xff));
-				})
-				[_0x27cf41(0x389, 0x390, "hGEO", 0x36f, 0x35d)]((_0x53c05b) => {
-					function _0x19e4df(_0x9d3bf9, _0x537213, _0x41cafc, _0x424896, _0x4b5cb9) {
-						return _0xc3c58b(_0x41cafc, _0x537213 - 0x1d3, _0x41cafc - 0x1e9, _0x4b5cb9 - 0x98, _0x4b5cb9 - 0x161);
-					}
-					function _0x58e61b(_0x2938ef, _0x46cdd1, _0x461111, _0x569892, _0x328d88) {
-						return _0x5837a3(_0x2938ef - 0x1c7, _0x2938ef, _0x461111 - -0x12, _0x569892 - 0x11, _0x328d88 - 0xb6);
-					}
-					function _0x3f8c46(_0x179567, _0x170c50, _0x305822, _0x39c474, _0x2c9b53) {
-						return _0x29a538(_0x179567 - 0x13c, _0x170c50 - 0x100, _0x179567, _0x305822 - -0x259, _0x2c9b53 - 0x67);
-					}
-					function _0x1d514c(_0x4b0104, _0x30da9b, _0x55434b, _0x3b8151, _0x4c8899) {
-						return _0x26e0ac(_0x3b8151 - 0x468, _0x55434b, _0x55434b - 0x30, _0x3b8151 - 0x1a0, _0x4c8899 - 0x74);
-					}
-					function _0x1f2b26(_0x2117c0, _0x5e2d23, _0x55ce03, _0x5d2192, _0x226c82) {
-						return _0x27cf41(_0x2117c0 - 0x62, _0x5e2d23 - 0x14a, _0x226c82, _0x2117c0 - -0x2fc, _0x226c82 - 0x1a2);
-					}
-					console[_0x3f8c46("KQOR", 0x4b, 0x32, 0x36, 0xf)](_0x3f8c46("5a@y", -0x3, -0x8, 0x1b, 0xc) + _0x1d514c(0x36e, 0x346, "If9v", 0x362, 0x33f) + _0x3f8c46("EVsv", -0x8, -0x9, 0x4, -0x1b) + _0x19e4df(-0x23c, -0x240, "%apP", -0x239, -0x231) + _0x1f2b26(0x76, 0x72, 0x54, 0x82, "eHSV") + _0x1f2b26(0x6c, 0x5c, 0x5d, 0x6a, "KG(F") + _0x58e61b("EVsv", -0x28b, -0x274, -0x287, -0x250) + _0x58e61b("fkw@", -0x249, -0x26d, -0x252, -0x28f) + _0x1f2b26(0x71, 0x6c, 0x72, 0x78, "x!f5"), _0x53c05b), (window[_0x19e4df(-0x218, -0x205, "b92g", -0x201, -0x216) + _0x19e4df(-0x231, -0x223, "Jz8e", -0x252, -0x24b)][_0x1d514c(0x393, 0x378, "%apP", 0x36f, 0x369)] = _0x1d514c(0x36f, 0x327, "zBtd", 0x34c, 0x342) + _0x3f8c46("%apP", 0x2, 0x1, -0xa, 0x13) + _0x1d514c(0x31b, 0x30d, "@kJy", 0x32d, 0x30c) + _0x3f8c46("zBtd", -0x5, 0x1d, 0xe, 0x21) + _0x1d514c(0x35f, 0x351, "06M9", 0x36c, 0x372) + _0x1d514c(0x30e, 0x344, "aQPa", 0x32a, 0x32d) + _0x3f8c46("KWCh", 0x23, -0x1, 0x4, -0x1a));
-				});
+			[_0x27cf41(0x349, 0x33d, "V9e#", 0x34d, 0x32b)]((_0x5d0a27) => {
+				function _0xfb861a(_0x5f0c85, _0x1b3af5, _0x4d4907, _0x28c823, _0xb7488a) {
+					return _0xc3c58b(_0x1b3af5, _0x1b3af5 - 0x115, _0x4d4907 - 0x139, _0x5f0c85 - 0x3d1, _0xb7488a - 0x1db);
+				}
+				if (!_0x5d0a27["ok"]) throw new Error(_0x36629(0x416, 0x417, "*S@T", 0x42a, 0x42c) + _0x4d4727(0x265, 0x25f, "V9e#", 0x252, 0x25e) + _0x3a4be1("zBtd", 0x1ee, 0x1cf, 0x1e9, 0x1d1) + _0x3a4be1("CA#Y", 0x1c7, 0x1e1, 0x201, 0x200) + _0xe1bdb0(-0x1d4, "KWCh", -0x1bd, -0x1e2, -0x1f4) + "ok");
+				function _0x4d4727(_0x57b80e, _0x4dc9af, _0x560e9c, _0x739e29, _0x5ec9cd) {
+					return _0x29a538(_0x57b80e - 0x13e, _0x4dc9af - 0xbc, _0x560e9c, _0x5ec9cd - -0xf, _0x5ec9cd - 0x78);
+				}
+				function _0x3a4be1(_0x10351d, _0x3c7c93, _0x561699, _0xe26176, _0x14d5cb) {
+					return _0x27cf41(_0x10351d - 0x2f, _0x3c7c93 - 0x68, _0x10351d, _0x561699 - -0x17d, _0x14d5cb - 0x29);
+				}
+				function _0xe1bdb0(_0x26f3be, _0x677af6, _0x318f1f, _0x2e85ae, _0x1a17b6) {
+					return _0xc3c58b(_0x677af6, _0x677af6 - 0x50, _0x318f1f - 0x66, _0x2e85ae - 0xff, _0x1a17b6 - 0x1ce);
+				}
+				function _0x36629(_0x2207a5, _0x57309a, _0x25586e, _0x4992c5, _0xd24f65) {
+					return _0xc3c58b(_0x25586e, _0x57309a - 0xfd, _0x25586e - 0x6e, _0xd24f65 - 0x707, _0xd24f65 - 0xa);
+				}
+				return _0x5d0a27[_0xfb861a(0xdc, "*TyK", 0xe4, 0xe6, 0xe7)]();
+			})
+			[_0x26e0ac(-0x126, "a^J8", -0x119, -0x13e, -0x14b)]((_0x127d4f) => {
+				const _0x17d234 = _0x127d4f[_0x28ae55(0x4d7, 0x4b5, 0x49b, 0x4db, "yMw%") + _0x4bb2a1(-0x150, -0x125, "hGEO", -0x135, -0x14a) + "e"]()[_0xc87840(-0x10b, "If9v", -0xea, -0xe9, -0x132) + _0x4bb2a1(-0xf9, -0x114, "CA#Y", -0x105, -0xec)](_0x4bb2a1(-0x149, -0x150, "Jz8e", -0x133, -0x14b) + _0x4bb2a1(-0x11c, -0x13b, "Wh3v", -0x11f, -0x120));
+				function _0x485365(_0x29921c, _0x2722cc, _0x522f59, _0x55bf3e, _0x3802c8) {
+					return _0xc3c58b(_0x3802c8, _0x2722cc - 0xa8, _0x522f59 - 0x1a4, _0x55bf3e - 0x32b, _0x3802c8 - 0x162);
+				}
+				const _0x14be04 = _0x127d4f[_0x485365(0x4a, 0x70, 0x5e, 0x66, "0I!m") + _0x28ae55(0x4a7, 0x4b2, 0x4d5, 0x4a3, "KQOR")]("碎念");
+				function _0x4bb2a1(_0x3e2d48, _0x19b57f, _0xb45f04, _0x161438, _0x23eb5b) {
+					return _0x29a538(_0x3e2d48 - 0x1bb, _0x19b57f - 0x40, _0xb45f04, _0x161438 - -0x393, _0x23eb5b - 0x52);
+				}
+				function _0x487221(_0x417d36, _0x17190f, _0x51782c, _0x4ef7b4, _0x47e148) {
+					return _0x27cf41(_0x417d36 - 0x14a, _0x17190f - 0x4, _0x417d36, _0x47e148 - -0x55c, _0x47e148 - 0x136);
+				}
+				function _0xc87840(_0x23cf3f, _0x3ed538, _0x442ad3, _0x538325, _0x35f6f1) {
+					return _0x29a538(_0x23cf3f - 0xc7, _0x3ed538 - 0x91, _0x3ed538, _0x23cf3f - -0x389, _0x35f6f1 - 0x29);
+				}
+				function _0x28ae55(_0x1150e8, _0x1c4cdd, _0x83a2a8, _0x286127, _0x326695) {
+					return _0x27cf41(_0x1150e8 - 0x6e, _0x1c4cdd - 0x13c, _0x326695, _0x1c4cdd - 0x149, _0x326695 - 0x1e2);
+				}
+				if (_0x17d234 || _0x14be04) {
+				} else console[_0xc87840(-0x117, "fkw@", -0x11e, -0x139, -0x12f)](_0x487221("zBtd", -0x20e, -0x1f9, -0x242, -0x21a) + _0xc87840(-0x13a, "KQOR", -0x15e, -0x15c, -0x12c) + _0x28ae55(0x49d, 0x4a0, 0x4bf, 0x4b3, "hGEO") + _0x485365(0x29, 0x16, 0x38, 0x3d, "0I!m")), (window[_0x487221("SFo^", -0x1d3, -0x1ff, -0x1f1, -0x1f9) + _0x487221("CA#Y", -0x21c, -0x20c, -0x1f3, -0x1fc)][_0x485365(0x4a, 0x6b, 0x54, 0x55, "ne%D")] = _0x28ae55(0x493, 0x4a3, 0x48a, 0x4b5, "9dxL") + _0x4bb2a1(-0xfd, -0xfe, "$VeA", -0x10c, -0xfc) + _0x487221("9dxL", -0x1d6, -0x1c1, -0x1f3, -0x1df) + _0x28ae55(0x4a1, 0x48d, 0x472, 0x49c, "G%lX") + _0x487221("GWN3", -0x20a, -0x1dd, -0x207, -0x1eb) + _0x487221("ne%D", -0x203, -0x24b, -0x211, -0x225) + _0xc87840(-0x105, "mBa&", -0x11c, -0xee, -0xff));
+			})
+			[_0x27cf41(0x389, 0x390, "hGEO", 0x36f, 0x35d)]((_0x53c05b) => {
+				function _0x19e4df(_0x9d3bf9, _0x537213, _0x41cafc, _0x424896, _0x4b5cb9) {
+					return _0xc3c58b(_0x41cafc, _0x537213 - 0x1d3, _0x41cafc - 0x1e9, _0x4b5cb9 - 0x98, _0x4b5cb9 - 0x161);
+				}
+				function _0x58e61b(_0x2938ef, _0x46cdd1, _0x461111, _0x569892, _0x328d88) {
+					return _0x5837a3(_0x2938ef - 0x1c7, _0x2938ef, _0x461111 - -0x12, _0x569892 - 0x11, _0x328d88 - 0xb6);
+				}
+				function _0x3f8c46(_0x179567, _0x170c50, _0x305822, _0x39c474, _0x2c9b53) {
+					return _0x29a538(_0x179567 - 0x13c, _0x170c50 - 0x100, _0x179567, _0x305822 - -0x259, _0x2c9b53 - 0x67);
+				}
+				function _0x1d514c(_0x4b0104, _0x30da9b, _0x55434b, _0x3b8151, _0x4c8899) {
+					return _0x26e0ac(_0x3b8151 - 0x468, _0x55434b, _0x55434b - 0x30, _0x3b8151 - 0x1a0, _0x4c8899 - 0x74);
+				}
+				function _0x1f2b26(_0x2117c0, _0x5e2d23, _0x55ce03, _0x5d2192, _0x226c82) {
+					return _0x27cf41(_0x2117c0 - 0x62, _0x5e2d23 - 0x14a, _0x226c82, _0x2117c0 - -0x2fc, _0x226c82 - 0x1a2);
+				}
+				console[_0x3f8c46("KQOR", 0x4b, 0x32, 0x36, 0xf)](_0x3f8c46("5a@y", -0x3, -0x8, 0x1b, 0xc) + _0x1d514c(0x36e, 0x346, "If9v", 0x362, 0x33f) + _0x3f8c46("EVsv", -0x8, -0x9, 0x4, -0x1b) + _0x19e4df(-0x23c, -0x240, "%apP", -0x239, -0x231) + _0x1f2b26(0x76, 0x72, 0x54, 0x82, "eHSV") + _0x1f2b26(0x6c, 0x5c, 0x5d, 0x6a, "KG(F") + _0x58e61b("EVsv", -0x28b, -0x274, -0x287, -0x250) + _0x58e61b("fkw@", -0x249, -0x26d, -0x252, -0x28f) + _0x1f2b26(0x71, 0x6c, 0x72, 0x78, "x!f5"), _0x53c05b), (window[_0x19e4df(-0x218, -0x205, "b92g", -0x201, -0x216) + _0x19e4df(-0x231, -0x223, "Jz8e", -0x252, -0x24b)][_0x1d514c(0x393, 0x378, "%apP", 0x36f, 0x369)] = _0x1d514c(0x36f, 0x327, "zBtd", 0x34c, 0x342) + _0x3f8c46("%apP", 0x2, 0x1, -0xa, 0x13) + _0x1d514c(0x31b, 0x30d, "@kJy", 0x32d, 0x30c) + _0x3f8c46("zBtd", -0x5, 0x1d, 0xe, 0x21) + _0x1d514c(0x35f, 0x351, "06M9", 0x36c, 0x372) + _0x1d514c(0x30e, 0x344, "aQPa", 0x32a, 0x32d) + _0x3f8c46("KWCh", 0x23, -0x1, 0x4, -0x1a));
+			});
 		}, 0x2710);
 	});
 
@@ -1760,17 +1901,18 @@ function createBurst(count, particleFactory, startAngle = 0, arcLength = PI_2) {
  * @param {number} center_y  	爆炸中心点y
  */
 function createWordBurst(wordText, particleFactory, center_x, center_y) {
-	//将点阵坐标转换为canvas坐标
+	//将点阵坐标转换为相对坐标并绘制
 	var map = getWordDots(wordText);
 	if (!map) return;
 	var dcenterX = map.width / 2;
 	var dcenterY = map.height / 2;
 	var color = randomColor();
-	var strobed = Math.random() < 0.5;
-	var strobeColor = strobed ? randomColor() : color;
+	var strobed = true; // 强制频闪以增强视觉
+	var strobeColor = randomColor();
 
 	for (let i = 0; i < map.points.length; i++) {
 		const point = map.points[i];
+		// 修正：将点阵相对于中心的偏移量直接叠加到爆炸中心
 		let x = center_x + (point.x - dcenterX);
 		let y = center_y + (point.y - dcenterY);
 		particleFactory({ x, y }, color, strobed, strobeColor);
@@ -2061,8 +2203,6 @@ class Shell {
 
 		//点阵星星工厂
 		const dotStarFactory = (point, color, strobe, strobeColor) => {
-			const standardInitialSpeed = this.spreadSize / 1800;
-
 			if (strobe) {
 				//随机speed 0.05~0.15
 				var speed = Math.random() * 0.1 + 0.05;
@@ -2075,8 +2215,8 @@ class Shell {
 					speed,
 					// add minor variation to star life
 					this.starLife + Math.random() * this.starLife * this.starLifeVariation + speed * 1000,
-					this.horsetail ? this.comet && this.comet.speedX : 0,
-					this.horsetail ? this.comet && this.comet.speedY : -standardInitialSpeed,
+					0, // 明确设为0
+					0, // 明确设为0，防止向上漂移
 					2
 				);
 
@@ -2092,12 +2232,14 @@ class Shell {
 					Math.random() * 2 * Math.PI,
 					// apply near cubic falloff to speed (places more particles towards outside)
 					Math.pow(Math.random(), 0.15) * 1.4,
-					this.starLife + Math.random() * this.starLife * this.starLifeVariation + 1000
+					this.starLife + Math.random() * this.starLife * this.starLifeVariation + 1000,
+					0, // 显式重写速度，防止继承默认上升速度
+					0
 				);
 			}
 
-			//文字尾影
-			Spark.add(point.x + 5, point.y + 10, color, Math.random() * 2 * Math.PI, Math.pow(Math.random(), 0.05) * 0.4, this.starLife + Math.random() * this.starLife * this.starLifeVariation + 2000);
+			//文字尾影 - 同样设速度为0，防止尾影带出上升感
+			Spark.add(point.x, point.y, color, Math.random() * 2 * Math.PI, Math.pow(Math.random(), 0.05) * 0.4, this.starLife + Math.random() * this.starLife * this.starLifeVariation + 2000, 0, 0);
 		};
 
 		if (typeof this.color === "string") {
@@ -2164,11 +2306,9 @@ class Shell {
 			throw new Error("无效的烟花颜色。应为字符串或字符串数组，但得到:" + this.color);
 		}
 
-		if (!this.disableWordd && store.state.config.wordShell) {
-			if (Math.random() < 0.1) {
-				if (Math.random() < 0.5) {
-					createWordBurst(randomWord(), dotStarFactory, x, y);
-				}
+		if (!this.disableWord) {
+			if (Math.random() < store.state.config.wordShell) {
+				createWordBurst(randomWord(), dotStarFactory, x, y);
 			}
 		}
 
