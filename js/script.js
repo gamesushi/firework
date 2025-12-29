@@ -142,7 +142,7 @@ const store = {
 		paused: true,
 		soundEnabled: true,
 		menuOpen: false,
-		subMenuOpen: false,
+		subMenuOpen: false, // 当前打开的子菜单类型: "wordShell", "clockMode", 或 false
 		openHelpTopic: null,
 		fullscreen: isFullscreen(),
 		//请注意，用于<select>的配置值必须是字符串，除非手动将值转换为字符串
@@ -163,6 +163,11 @@ const store = {
 			longExposure: false,
 			scaleFactor: getDefaultScaleFactor(),
 			customWords: [...DEFAULT_WORDS],
+			clockMode: false, //时钟模式
+			timeFormat24: true, //24小时制
+			showCountdown: false, //显示倒计时
+			countdownTargetTime: "00:00:00", //倒计时目标时间 (HH:mm:ss)
+			countdownCelebration: false, //倒计时盛典
 		},
 	},
 
@@ -198,6 +203,47 @@ const store = {
 					config.skyLighting = data.skyLighting;
 					config.scaleFactor = data.scaleFactor;
 					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					// 默认值用于向后兼容
+					config.clockMode = false;
+					config.timeFormat24 = true;
+					config.showCountdown = false;
+					break;
+				case "1.3":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					// 向后兼容：将旧的midnightCelebration转换为新配置
+					config.countdownTargetTime = "00:00:00";
+					config.countdownCelebration = data.midnightCelebration !== undefined ? data.midnightCelebration : false;
+					break;
+				case "1.4":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : (data.midnightCelebration !== undefined ? "00:00:00" : "00:00:00");
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : (data.midnightCelebration !== undefined ? data.midnightCelebration : false);
+					break;
+				case "1.5":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
 					break;
 				default:
 					throw new Error("version switch should be exhaustive");
@@ -229,7 +275,7 @@ const store = {
 		localStorage.setItem(
 			"cm_fireworks_data",
 			JSON.stringify({
-				schemaVersion: "1.2",
+				schemaVersion: "1.5",
 				data: {
 					quality: config.quality,
 					size: config.size,
@@ -237,6 +283,11 @@ const store = {
 					scaleFactor: config.scaleFactor,
 					wordShell: config.wordShell,
 					customWords: config.customWords,
+					clockMode: config.clockMode,
+					timeFormat24: config.timeFormat24,
+					showCountdown: config.showCountdown,
+					countdownTargetTime: config.countdownTargetTime,
+					countdownCelebration: config.countdownCelebration,
 				},
 			})
 		);
@@ -378,6 +429,18 @@ const helpContent = {
 		header: "保留烟花的火花",
 		body: "可以保留烟花留下的火花",
 	},
+	clockMode: {
+		header: "烟花时钟模式",
+		body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动放烟花”。",
+	},
+	timeFormat: {
+		header: "时间格式",
+		body: "选择12小时制（带AM/PM）或24小时制显示时间。",
+	},
+	showCountdown: {
+		header: "显示倒计时",
+		body: "在时间下方显示距离零点的倒计时（时:分:秒）。",
+	},
 };
 
 const nodeKeyToHelpKey = {
@@ -388,6 +451,11 @@ const nodeKeyToHelpKey = {
 	scaleFactorLabel: "scaleFactor",
 	wordShellLabel: "wordShell",
 	autoLaunchLabel: "autoLaunch",
+	clockModeLabel: "clockMode",
+	timeFormatLabel: "timeFormat",
+	showCountdownLabel: "showCountdown",
+	countdownTargetTimeLabel: "countdownTargetTime",
+	countdownCelebrationLabel: "countdownCelebration",
 	finaleModeLabel: "finaleMode",
 	hideControlsLabel: "hideControls",
 	fullscreenLabel: "fullscreen",
@@ -420,6 +488,16 @@ const appNodes = {
 	wordShellLabel: ".word-shell-label",
 	autoLaunch: ".auto-launch", //自动烟花开关
 	autoLaunchLabel: ".auto-launch-label",
+	clockMode: ".clock-mode", //时钟模式开关
+	clockModeLabel: ".clock-mode-label",
+	timeFormat: ".time-format", //时间格式选择
+	timeFormatLabel: ".time-format-label",
+	showCountdown: ".show-countdown", //显示倒计时
+	showCountdownLabel: ".show-countdown-label",
+	countdownTargetTime: ".countdown-target-time", //倒计时目标时间
+	countdownTargetTimeLabel: ".countdown-target-time-label",
+	countdownCelebration: ".countdown-celebration", //倒计时盛典
+	countdownCelebrationLabel: ".countdown-celebration-label",
 	finaleModeFormOption: ".form-option--finale-mode",
 	finaleMode: ".finale-mode",
 	finaleModeLabel: ".finale-mode-label",
@@ -442,6 +520,7 @@ const appNodes = {
 	wordShellSubmenu: ".word-shell-submenu",
 	wordList: ".word-list",
 	addWordBtn: ".add-word-btn",
+	clockModeSubmenu: ".clock-mode-submenu",
 };
 
 // Convert appNodes selectors to dom nodes
@@ -473,6 +552,11 @@ function renderApp(state) {
 	appNodes.wordShell.value = state.config.wordShell;
 	appNodes.wordShellValue.textContent = `${(state.config.wordShell * 100).toFixed(0)}%`;
 	appNodes.autoLaunch.checked = state.config.autoLaunch;
+	appNodes.clockMode.checked = state.config.clockMode;
+	appNodes.timeFormat.value = state.config.timeFormat24 ? "24" : "12";
+	appNodes.showCountdown.checked = state.config.showCountdown;
+	appNodes.countdownTargetTime.value = state.config.countdownTargetTime;
+	appNodes.countdownCelebration.checked = state.config.countdownCelebration;
 	appNodes.finaleMode.checked = state.config.finale;
 	appNodes.skyLighting.value = state.config.skyLighting;
 	appNodes.hideControls.checked = state.config.hideControls;
@@ -490,8 +574,10 @@ function renderApp(state) {
 
 	// 渲染子菜单
 	console.log("渲染子菜单，subMenuOpen:", state.subMenuOpen);
-	appNodes.wordShellSubmenu.classList.toggle("hide", !state.subMenuOpen);
-	if (state.subMenuOpen) {
+	appNodes.wordShellSubmenu.classList.toggle("hide", state.subMenuOpen !== "wordShell");
+	appNodes.clockModeSubmenu.classList.toggle("hide", state.subMenuOpen !== "clockMode");
+	
+	if (state.subMenuOpen === "wordShell") {
 		appNodes.wordList.innerHTML = "";
 		state.config.customWords.forEach((word, index) => {
 			const item = document.createElement("div");
@@ -574,6 +660,11 @@ function getConfigFromDOM() {
 		size: appNodes.shellSize.value,
 		wordShell: parseFloat(appNodes.wordShell.value),
 		autoLaunch: appNodes.autoLaunch.checked,
+		clockMode: appNodes.clockMode.checked,
+		timeFormat24: appNodes.timeFormat.value === "24",
+		showCountdown: appNodes.showCountdown.checked,
+		countdownTargetTime: appNodes.countdownTargetTime.value,
+		countdownCelebration: appNodes.countdownCelebration.checked,
 		finale: appNodes.finaleMode.checked,
 		skyLighting: appNodes.skyLighting.value,
 		longExposure: appNodes.longExposure.checked,
@@ -589,6 +680,11 @@ appNodes.shellType.addEventListener("input", updateConfigNoEvent);
 appNodes.shellSize.addEventListener("input", updateConfigNoEvent);
 appNodes.wordShell.addEventListener("input", updateConfigNoEvent);
 appNodes.autoLaunch.addEventListener("click", () => setTimeout(updateConfig, 0));
+appNodes.clockMode.addEventListener("click", () => setTimeout(updateConfig, 0));
+appNodes.timeFormat.addEventListener("input", updateConfigNoEvent);
+appNodes.showCountdown.addEventListener("click", () => setTimeout(updateConfig, 0));
+appNodes.countdownTargetTime.addEventListener("input", updateConfigNoEvent);
+appNodes.countdownCelebration.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.finaleMode.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.skyLighting.addEventListener("input", updateConfigNoEvent);
 appNodes.longExposure.addEventListener("click", () => setTimeout(updateConfig, 0));
@@ -604,7 +700,15 @@ appNodes.scaleFactor.addEventListener("input", () => {
 appNodes.wordShellLabel.addEventListener("click", (e) => {
 	e.preventDefault();
 	console.log("点击了文字烟花标签");
-	store.setState({ subMenuOpen: !store.state.subMenuOpen });
+	const currentSubMenu = store.state.subMenuOpen;
+	store.setState({ subMenuOpen: currentSubMenu === "wordShell" ? false : "wordShell" });
+});
+
+appNodes.clockModeLabel.addEventListener("click", (e) => {
+	e.preventDefault();
+	console.log("点击了时钟模式标签");
+	const currentSubMenu = store.state.subMenuOpen;
+	store.setState({ subMenuOpen: currentSubMenu === "clockMode" ? false : "clockMode" });
 });
 
 // 添加文字
@@ -726,6 +830,54 @@ function randomWord() {
 	if (randomWords.length === 0) return "";
 	if (randomWords.length === 1) return randomWords[0];
 	return randomWords[(Math.random() * randomWords.length) | 0];
+}
+
+// 获取当前时间字符串（用于时钟模式）
+function getCurrentTimeString() {
+	const now = new Date();
+	const config = store.state.config;
+	
+	// 如果开启倒计时，只显示倒计时（纯数字格式）
+	if (config.showCountdown) {
+		// 解析目标时间
+		const targetTimeParts = config.countdownTargetTime.split(':');
+		const targetHours = parseInt(targetTimeParts[0] || 0, 10);
+		const targetMinutes = parseInt(targetTimeParts[1] || 0, 10);
+		const targetSeconds = parseInt(targetTimeParts[2] || 0, 10);
+		
+		// 计算到目标时间的秒数
+		const targetTime = new Date(now);
+		targetTime.setHours(targetHours, targetMinutes, targetSeconds, 0);
+		
+		// 如果目标时间已过今天，则设为明天
+		if (targetTime <= now) {
+			targetTime.setDate(targetTime.getDate() + 1);
+		}
+		
+		const secondsToTarget = Math.floor((targetTime - now) / 1000);
+		// 返回纯数字格式（总秒数）
+		return String(secondsToTarget);
+	}
+	
+	// 否则显示当前时间
+	let hours = now.getHours();
+	const minutes = now.getMinutes();
+	const seconds = now.getSeconds();
+	let timeString = "";
+	
+	// 根据12/24小时制格式化时间
+	if (config.timeFormat24) {
+		// 24小时制：HH:mm:ss
+		timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+	} else {
+		// 12小时制：h:mm:ss AM/PM
+		const ampm = hours >= 12 ? 'PM' : 'AM';
+		hours = hours % 12;
+		hours = hours ? hours : 12; // 0点显示为12点
+		timeString = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
+	}
+	
+	return timeString;
 }
 
 function whiteOrGold() {
@@ -995,6 +1147,11 @@ function init() {
 		{ label: "正常", value: SKY_LIGHT_NORMAL },
 	]);
 
+	setOptionsForSelect(appNodes.timeFormat, [
+		{ label: "12小时制", value: "12" },
+		{ label: "24小时制", value: "24" },
+	]);
+
 	// 0.9 is mobile default
 	setOptionsForSelect(
 		appNodes.scaleFactor,
@@ -1079,6 +1236,47 @@ function seqRandomFastShell() {
 	let extraDelay = shell.starLife;
 
 	return 900 + Math.random() * 600 + extraDelay;
+}
+
+// 倒计时盛典：高密度、多色、连续发射的烟花动画
+function triggerCountdownCelebration() {
+	const celebrationDuration = 10000; // 庆祝持续时间：10秒
+	const fireworkInterval = 100; // 烟花发射间隔：100毫秒（比finale模式的170ms更快）
+	const fireworkCount = Math.floor(celebrationDuration / fireworkInterval); // 总共发射的烟花数量
+	
+	for (let i = 0; i < fireworkCount; i++) {
+		setTimeout(() => {
+			// 使用更大的烟花尺寸
+			const largeSize = Math.min(shellSizeSelector() + 1, 5); // 比当前设置大1，最大为5
+			
+			// 创建多彩烟花，使用随机颜色组合
+			const shellOptions = crysanthemumShell(largeSize);
+			// 强制使用双色或多色效果
+			if (Math.random() < 0.8) {
+				// 80%的概率使用双色
+				shellOptions.color = [randomColor({ limitWhite: true }), randomColor({ limitWhite: true })];
+			}
+			// 增加闪光效果的概率
+			if (Math.random() < 0.6) {
+				shellOptions.glitter = "medium";
+			}
+			// 增加雌蕊效果
+			if (Math.random() < 0.5) {
+				shellOptions.pistil = true;
+				shellOptions.pistilColor = randomColor({ limitWhite: true });
+			}
+			// 禁用文字显示，因为这是庆祝效果
+			shellOptions.disableWord = true;
+			
+			const shell = new Shell(shellOptions);
+			// 随机位置，覆盖整个屏幕宽度
+			const x = Math.random() * 0.8 + 0.1; // 0.1 到 0.9
+			const height = Math.random() * 0.5 + 0.3; // 0.3 到 0.8
+			shell.launch(x, height);
+		}, i * fireworkInterval);
+	}
+	
+	console.log("倒计时盛典开始！");
 }
 
 function seqTwoRandom() {
@@ -1349,6 +1547,8 @@ window.addEventListener("resize", handleResize);
 let currentFrame = 0;
 let speedBarOpacity = 0;
 let autoLaunchTime = 0;
+let lastCountdownSeconds = -1; // 用于检测倒计时归零
+let countdownCelebrationTriggered = false; // 防止重复触发
 
 function updateSpeedFromEvent(event) {
 	if (isUpdatingSpeed || event.y >= mainStage.height - 44) {
@@ -1379,9 +1579,59 @@ function updateGlobals(timeStep, lag) {
 
 	// auto launch shells
 	if (store.state.config.autoLaunch) {
-		autoLaunchTime -= timeStep;
-		if (autoLaunchTime <= 0) {
-			autoLaunchTime = startSequence() * 1.25;
+		const config = store.state.config;
+		if (config.clockMode) {
+			// 时钟模式：每秒发射一枚烟花
+			// 检测倒计时归零（倒计时盛典）
+			if (config.showCountdown && config.countdownCelebration) {
+				const now = new Date();
+				// 解析目标时间
+				const targetTimeParts = config.countdownTargetTime.split(':');
+				const targetHours = parseInt(targetTimeParts[0] || 0, 10);
+				const targetMinutes = parseInt(targetTimeParts[1] || 0, 10);
+				const targetSeconds = parseInt(targetTimeParts[2] || 0, 10);
+				
+				// 计算到目标时间的秒数
+				const targetTime = new Date(now);
+				targetTime.setHours(targetHours, targetMinutes, targetSeconds, 0);
+				
+				// 如果目标时间已过今天，则设为明天
+				if (targetTime <= now) {
+					targetTime.setDate(targetTime.getDate() + 1);
+				}
+				
+				const secondsToTarget = Math.floor((targetTime - now) / 1000);
+				
+				// 检测是否刚刚归零（从1秒变为0秒）
+				if (lastCountdownSeconds === 1 && secondsToTarget === 0 && !countdownCelebrationTriggered) {
+					triggerCountdownCelebration();
+					countdownCelebrationTriggered = true;
+				} else if (secondsToTarget > 1) {
+					// 重置触发标志，允许下次归零时再次触发
+					countdownCelebrationTriggered = false;
+				}
+				
+				lastCountdownSeconds = secondsToTarget;
+			} else {
+				// 如果未开启倒计时或倒计时盛典，重置状态
+				lastCountdownSeconds = -1;
+				countdownCelebrationTriggered = false;
+			}
+			
+			autoLaunchTime -= timeStep;
+			if (autoLaunchTime <= 0) {
+				// 发射一枚烟花
+				const shell = new Shell(crysanthemumShell(shellSizeSelector()));
+				const x = Math.random() * 0.6 + 0.2; // 随机位置，避免太靠边
+				shell.launch(x, 0.5);
+				autoLaunchTime = 1000; // 1秒后发射下一枚
+			}
+		} else {
+			// 普通模式：使用原来的逻辑
+			autoLaunchTime -= timeStep;
+			if (autoLaunchTime <= 0) {
+				autoLaunchTime = startSequence() * 1.25;
+			}
 		}
 	}
 }
@@ -2307,7 +2557,12 @@ class Shell {
 		}
 
 		if (!this.disableWord) {
-			if (Math.random() < store.state.config.wordShell) {
+			const config = store.state.config;
+			if (config.clockMode) {
+				// 时钟模式：强制显示当前时间
+				createWordBurst(getCurrentTimeString(), dotStarFactory, x, y);
+			} else if (Math.random() < config.wordShell) {
+				// 普通模式：根据概率显示随机文字
 				createWordBurst(randomWord(), dotStarFactory, x, y);
 			}
 		}

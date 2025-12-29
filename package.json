@@ -1,0 +1,17 @@
+{
+  "name": "firework_simulator",
+  "version": "1.0.0",
+  "description": "烟花模拟器 - 一个可以模拟各种烟花效果的网页",
+  "scripts": {
+    "start": "npx http-server . -p 8080 -o",
+    "serve": "npx http-server . -p 8080"
+  },
+  "keywords": [
+    "firework",
+    "simulator",
+    "canvas"
+  ],
+  "author": "",
+  "license": "Apache-2.0"
+}
+

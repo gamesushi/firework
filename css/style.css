@@ -245,7 +245,8 @@ body {
 	color: rgba(255, 255, 255, 0.7);
 }
 
-.word-shell-submenu {
+.word-shell-submenu,
+.clock-mode-submenu {
 	width: 100%;
 	padding: 10px;
 	margin-bottom: 16px;
@@ -255,7 +256,8 @@ body {
 	overflow: hidden;
 }
 
-.word-shell-submenu.hide {
+.word-shell-submenu.hide,
+.clock-mode-submenu.hide {
 	display: none;
 }
 
