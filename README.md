@@ -76,7 +76,7 @@ Suitable for:
 
 在遵循原项目许可证与署名要求的前提下，  
 本项目对整体结构与功能进行了整理、扩展与增强，  
-并新增了文字烟花、时钟烟花与跨年倒计时等功能。
+并新增了文字烟花编辑、时钟烟花与跨年倒计时等功能。
 
 This project is a derivative work based on the original Firework Simulator by Caleb Miller.  
 Special thanks to **NianBroken** for contributing the **Text Fireworks** functionality.
