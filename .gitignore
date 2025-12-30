@@ -7,6 +7,3 @@ node_modules/
 # Testing
 test-results/
 tests/
-
-# Project Specific backups
-css/style_backup.css

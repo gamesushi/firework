@@ -2,6 +2,7 @@
 Copyright © 2022 Caleb Miller
   CodePen: https://codepen.io/MillerTime/pen/XgpNwb
 
+Modifications Copyright © 2024 NianBroken (https://github.com/NianBroken/Firework_Simulator)
 Modifications Copyright © 2025 gamesushi
 GitHub: https://github.com/gamesushi
 
@@ -187,16 +188,16 @@ const translations = {
 		scale: "缩放",
 		text_fireworks: "文字烟花",
 		add_text: "添加文字",
-		auto_fire: "自动放烟花",
+		auto_fire: "自动烟花",
 		fireworks_clock: "时钟烟花",
 		time_format: "时间格式",
 		show_countdown: "显示倒计时",
 		countdown_target: "倒计时目标时间 (HH:mm:ss)",
 		countdown_celebration: "倒计时盛典",
-		finale_mode: "同时放更多的烟花",
-		hide_controls: "隐藏控制按钮",
+		finale_mode: "烟花庆典",
+		hide_controls: "隐藏设置按钮",
 		fullscreen: "全屏",
-		open_shutter: "保留烟花的火花",
+		open_shutter: "保留火花",
 		close: "关闭",
 		cancel: "取消",
 		confirm: "确定",
@@ -233,15 +234,15 @@ const translations = {
 		help_scale_body: "使你与烟花离得更近或更远。对于较大的烟花，你可以选择更小的缩放值，尤其是在手机或平板电脑上。",
 		help_text_fireworks_header: "文字烟花",
 		help_text_fireworks_body: "开启后，会出现烟花形状的文字。点击“文字烟花”标签可以自定义显示的文字内容。",
-		help_auto_fire_header: "自动放烟花",
+		help_auto_fire_header: "自动烟花",
 		help_auto_fire_body: "开启后你就可以坐在你的设备屏幕前面欣赏烟花了，你也可以关闭它，但关闭后你就只能通过点击屏幕的方式来放烟花。",
-		help_finale_mode_header: "同时放更多的烟花",
+		help_finale_mode_header: "烟花庆典",
 		help_finale_mode_body: "可以在同一时间自动放出更多的烟花（但需要开启先开启“自动放烟花”）。",
-		help_hide_controls_header: "隐藏控制按钮",
+		help_hide_controls_header: "隐藏设置按钮",
 		help_hide_controls_body: "隐藏屏幕顶部的按钮。如果你要截图，或者需要一个无缝的体验，你就可以将按钮隐藏，隐藏按钮后你仍然可以在右上角打开设置。",
 		help_fullscreen_header: "全屏",
 		help_fullscreen_body: "切换至全屏模式",
-		help_open_shutter_header: "保留烟花的火花",
+		help_open_shutter_header: "保留火花",
 		help_open_shutter_body: "可以保留烟花留下的火花",
 		help_fireworks_clock_header: "时钟烟花",
 		help_fireworks_clock_body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动放烟花”。",
@@ -322,7 +323,6 @@ function toggleFullscreen() {
 
 // 将全屏更改与存储同步。事件侦听器是必需的，因为用户可以
 // 直接通过浏览器切换全屏模式，我们希望对此做出反应。
-// 这个项目的版权归Caleb Miller所有！
 fscreen.addEventListener("fullscreenchange", () => {
 	store.setState({ fullscreen: isFullscreen() });
 });

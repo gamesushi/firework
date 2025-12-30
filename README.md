@@ -68,11 +68,21 @@ Suitable for:
 - 原始地址 / Source URL：  
   https://codepen.io/MillerTime/pen/XgpNwb
 
+本项目特别增加了以下功能，并对此表示感谢：
+
+- 文字烟花功能贡献者 / Text Fireworks Contributor：**NianBroken**
+- 贡献者项目地址：[Firework_Simulator](https://github.com/NianBroken/Firework_Simulator)
+- 感谢 **NianBroken** 对文字烟花功能的辛苦付出与开源精神。
+
 在遵循原项目许可证与署名要求的前提下，  
 本项目对整体结构与功能进行了整理、扩展与增强，  
 并新增了文字烟花、时钟烟花与跨年倒计时等功能。
 
 This project is a derivative work based on the original Firework Simulator by Caleb Miller.  
+Special thanks to **NianBroken** for contributing the **Text Fireworks** functionality.
+- Contributor: **NianBroken**
+- Project URL: [Firework_Simulator](https://github.com/NianBroken/Firework_Simulator)
+
 While preserving the original license and attribution,  
 the codebase has been refactored, extended, and enhanced with additional features,  
 including text fireworks, clock fireworks, and New Year countdown functionality.

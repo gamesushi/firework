@@ -2,6 +2,7 @@
 Copyright © 2022 Caleb Miller
   CodePen: https://codepen.io/MillerTime/pen/XgpNwb
 
+Modifications Copyright © 2024 NianBroken (https://github.com/NianBroken/Firework_Simulator)
 Modifications Copyright © 2025 gamesushi
 GitHub: https://github.com/gamesushi
 
