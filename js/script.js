@@ -237,7 +237,7 @@ const translations = {
 		help_auto_fire_header: "自动烟花",
 		help_auto_fire_body: "开启后你就可以坐在你的设备屏幕前面欣赏烟花了，你也可以关闭它，但关闭后你就只能通过点击屏幕的方式来放烟花。",
 		help_finale_mode_header: "烟花庆典",
-		help_finale_mode_body: "可以在同一时间自动放出更多的烟花（但需要开启先开启“自动放烟花”）。",
+		help_finale_mode_body: "可以在同一时间自动放出更多的烟花（但需要开启先开启“自动烟花”）。",
 		help_hide_controls_header: "隐藏设置按钮",
 		help_hide_controls_body: "隐藏屏幕顶部的按钮。如果你要截图，或者需要一个无缝的体验，你就可以将按钮隐藏，隐藏按钮后你仍然可以在右上角打开设置。",
 		help_fullscreen_header: "全屏",
@@ -245,7 +245,7 @@ const translations = {
 		help_open_shutter_header: "保留火花",
 		help_open_shutter_body: "可以保留烟花留下的火花",
 		help_fireworks_clock_header: "时钟烟花",
-		help_fireworks_clock_body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动放烟花”。",
+		help_fireworks_clock_body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动烟花”。",
 		help_time_format_header: "时间格式",
 		help_time_format_body: "选择12小时制（带AM/PM）或24小时制显示时间。",
 		help_show_countdown_header: "显示倒计时",
@@ -1255,14 +1255,12 @@ function getCurrentTimeString() {
 		const targetTime = new Date(now);
 		targetTime.setHours(targetHours, targetMinutes, targetSeconds, 0);
 
-
+		// 如果目标时间已过今天，则设为明天
+		if (targetTime <= now) {
+			targetTime.setDate(targetTime.getDate() + 1);
+		}
 
 		let secondsToTarget = Math.floor((targetTime - now) / 1000);
-
-		// 如果倒计时已经到0或负数,直接返回"0",不计算明天的时间
-		if (secondsToTarget <= 0) {
-			return "0";
-		}
 
 		// 返回纯数字格式(总秒数)
 		return String(secondsToTarget);
