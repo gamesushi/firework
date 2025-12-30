@@ -1,10 +1,21 @@
 /*
-Copyright © 2022 NianBroken. All rights reserved.
-Github：https://github.com/NianBroken/Firework_Simulator
-Gitee：https://gitee.com/nianbroken/Firework_Simulator
-本项目采用 Apache-2.0 许可证
-简而言之，你可以自由使用、修改和分享本项目的代码，但前提是在其衍生作品中必须保留原始许可证和版权信息，并且必须以相同的许可证发布所有修改过的代码。
+Copyright © 2022 Caleb Miller
+  CodePen: https://codepen.io/MillerTime/pen/XgpNwb
+
+Modifications Copyright © 2025 gamesushi
+GitHub: https://github.com/gamesushi
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 */
+
 
 "use strict";
 
@@ -77,28 +88,215 @@ const trailsStage = new Stage("trails-canvas");
 const mainStage = new Stage("main-canvas");
 const stages = [trailsStage, mainStage];
 
-// 默认文字烟花内容
-const DEFAULT_WORDS = ["新年快乐", "大吉大利", "万事如意", "心想事成", "恭喜发财", "步步高升", "福满人间", "喜气盈门"];
-let randomWords = [...DEFAULT_WORDS];
-let wordDotsMap = {};
+// Translation Data
+const translations = {
+	en: {
+		loading: "Loading",
+		assembling: "Assembling Shells",
+		settings: "Settings",
+		settings_subheader: "Hover for details, click to expand.",
+		language_label: "Language",
+		shell_type: "Shell Type",
+		shell_size: "Shell Size",
+		quality: "Quality",
+		sky_lighting: "Sky Lighting",
+		scale: "Scale",
+		text_fireworks: "Text Fireworks",
+		add_text: "Add Text",
+		auto_fire: "Auto Fire",
+		fireworks_clock: "Fireworks Clock",
+		time_format: "Time Format",
+		show_countdown: "Show Countdown",
+		countdown_target: "Countdown Target (HH:mm:ss)",
+		countdown_celebration: "Countdown Celebration",
+		finale_mode: "Finale Mode",
+		hide_controls: "Hide Controls",
+		fullscreen: "Fullscreen",
+		open_shutter: "Open Shutter",
+		close: "Close",
+		cancel: "Cancel",
+		confirm: "Confirm",
+		background_settings: "Background",
+		background_url: "Image URL",
+		background_upload: "Upload",
+		background_mode: "Mode",
+		bg_cover: "Cover",
+		bg_contain: "Contain",
+		bg_stretch: "Stretch",
+		bg_tile: "Tile",
+		clear_background: "Clear",
 
-function updateWordDotsMap() {
-	wordDotsMap = {};
-	randomWords.forEach((word) => {
-		wordDotsMap[word] = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", "90px");
-	});
+		// Select Options
+		quality_low: "Low",
+		quality_normal: "Normal",
+		quality_high: "High",
+		sky_none: "None",
+		sky_dim: "Dim",
+		sky_normal: "Normal",
+		time_12h: "12 Hours",
+		time_24h: "24 Hours",
+
+		// Help Content
+		help_shell_type_header: "Shell Type",
+		help_shell_type_body: "The type of firework that is launched. Select 'Random' for a nice experience!",
+		help_shell_size_header: "Shell Size",
+		help_shell_size_body: "Starts large, and gets bigger. Determine how large that initial explosion is. Performance may decrease with larger shells.",
+		help_quality_header: "Quality",
+		help_quality_body: "Reduces the number of sparks. If you are experiencing lag, try lowering this.",
+		help_sky_lighting_header: "Sky Lighting",
+		help_sky_lighting_body: "Illuminates the background while fireworks explode. If the screen is too bright, try setting this to 'Dim' or 'None'.",
+		help_scale_header: "Scale",
+		help_scale_body: "Allows you to zoom in and out. For larger shells, choose a smaller scale.",
+		help_text_fireworks_header: "Text Fireworks",
+		help_text_fireworks_body: "When enabled, fireworks will form text. Click the label to customize the text.",
+		help_auto_fire_header: "Auto Fire",
+		help_auto_fire_body: "Sits back and launches fireworks for you. You can still click to launch manually.",
+		help_finale_mode_header: "Finale Mode",
+		help_finale_mode_body: "Launches more fireworks at once (requires Auto Fire to be enabled).",
+		help_hide_controls_header: "Hide Controls",
+		help_hide_controls_body: "Hides the buttons at the top of the screen. Ideal for screenshots or a seamless experience.",
+		help_fullscreen_header: "Fullscreen",
+		help_fullscreen_body: "Toggles fullscreen mode.",
+		help_open_shutter_header: "Open Shutter",
+		help_open_shutter_body: "Experimental. Preserves the trails of fireworks.",
+		help_fireworks_clock_header: "Fireworks Clock",
+		help_fireworks_clock_body: "Launches a firework every second displaying the current time. Requires Auto Fire.",
+		help_time_format_header: "Time Format",
+		help_time_format_body: "Switch between 12-hour and 24-hour format.",
+		help_show_countdown_header: "Show Countdown",
+		help_show_countdown_body: "Displays a countdown to midnight (or target time) below the clock.",
+
+		// Dynamic Messages
+		prompt_new_text: "Please enter new text:",
+		prompt_add_text: "Please enter text to add:",
+		confirm_delete: "Are you sure you want to delete \"{0}\"?",
+		alert_min_text: "Keep at least one text item!",
+		delete_word_title: "Click to delete",
+		edit_word_title: "Click to edit"
+	},
+	zh: {
+		loading: "加载中",
+		assembling: "正在装配烟花",
+		settings: "设置",
+		settings_subheader: "鼠标悬停查看设置详情，点击展开子菜单",
+		language_label: "语言",
+		shell_type: "烟花类型",
+		shell_size: "烟花大小",
+		quality: "画质",
+		sky_lighting: "照亮天空",
+		scale: "缩放",
+		text_fireworks: "文字烟花",
+		add_text: "添加文字",
+		auto_fire: "自动放烟花",
+		fireworks_clock: "时钟烟花",
+		time_format: "时间格式",
+		show_countdown: "显示倒计时",
+		countdown_target: "倒计时目标时间 (HH:mm:ss)",
+		countdown_celebration: "倒计时盛典",
+		finale_mode: "同时放更多的烟花",
+		hide_controls: "隐藏控制按钮",
+		fullscreen: "全屏",
+		open_shutter: "保留烟花的火花",
+		close: "关闭",
+		cancel: "取消",
+		confirm: "确定",
+		background_settings: "背景设置",
+		background_url: "图片地址",
+		background_upload: "上传图片",
+		background_mode: "填充方式",
+		bg_cover: "填充（等比）",
+		bg_contain: "适应（等比）",
+		bg_stretch: "拉伸",
+		bg_tile: "平铺",
+		clear_background: "清除背景",
+
+		// Select Options
+		quality_low: "低",
+		quality_normal: "正常",
+		quality_high: "高",
+		sky_none: "不",
+		sky_dim: "暗",
+		sky_normal: "正常",
+		time_12h: "12小时制",
+		time_24h: "24小时制",
+
+		// Help Content
+		help_shell_type_header: "烟花类型",
+		help_shell_type_body: "你要放的烟花的类型，选择“随机（Random）”可以获得非常好的体验！",
+		help_shell_size_header: "烟花大小",
+		help_shell_size_body: "烟花越大绽放范围就越大，但是烟花越大，设备所需的性能也会增多，大的烟花可能导致你的设备卡顿。",
+		help_quality_header: "画质",
+		help_quality_body: "如果动画运行不流畅，你可以试试降低画质。画质越高，烟花绽放后的火花数量就越多，但高画质可能导致你的设备卡顿。",
+		help_sky_lighting_header: "照亮天空",
+		help_sky_lighting_body: "烟花爆炸时，背景会被照亮。如果你的屏幕看起来太亮了，可以把它改成“暗”或者“不”。",
+		help_scale_header: "缩放",
+		help_scale_body: "使你与烟花离得更近或更远。对于较大的烟花，你可以选择更小的缩放值，尤其是在手机或平板电脑上。",
+		help_text_fireworks_header: "文字烟花",
+		help_text_fireworks_body: "开启后，会出现烟花形状的文字。点击“文字烟花”标签可以自定义显示的文字内容。",
+		help_auto_fire_header: "自动放烟花",
+		help_auto_fire_body: "开启后你就可以坐在你的设备屏幕前面欣赏烟花了，你也可以关闭它，但关闭后你就只能通过点击屏幕的方式来放烟花。",
+		help_finale_mode_header: "同时放更多的烟花",
+		help_finale_mode_body: "可以在同一时间自动放出更多的烟花（但需要开启先开启“自动放烟花”）。",
+		help_hide_controls_header: "隐藏控制按钮",
+		help_hide_controls_body: "隐藏屏幕顶部的按钮。如果你要截图，或者需要一个无缝的体验，你就可以将按钮隐藏，隐藏按钮后你仍然可以在右上角打开设置。",
+		help_fullscreen_header: "全屏",
+		help_fullscreen_body: "切换至全屏模式",
+		help_open_shutter_header: "保留烟花的火花",
+		help_open_shutter_body: "可以保留烟花留下的火花",
+		help_fireworks_clock_header: "时钟烟花",
+		help_fireworks_clock_body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动放烟花”。",
+		help_time_format_header: "时间格式",
+		help_time_format_body: "选择12小时制（带AM/PM）或24小时制显示时间。",
+		help_show_countdown_header: "显示倒计时",
+		help_show_countdown_body: "在时间下方显示距离零点的倒计时（时:分:秒）。",
+
+		// Dynamic Messages
+		prompt_new_text: "请输入新的文字内容：",
+		prompt_add_text: "请输入要添加的文字内容：",
+		confirm_delete: "确定要删除“{0}”吗？",
+		alert_min_text: "至少保留一个文字！",
+		delete_word_title: "点击删除",
+		edit_word_title: "点击修改"
+	}
+};
+
+function getTranslation(key) {
+	const lang = store.state.config.lang || 'en';
+	return translations[lang][key] || translations['en'][key] || key;
 }
-updateWordDotsMap();
+
+// 默认文字烟花内容 (Default words should be English by default now, or switchable?)
+// Let's keep them mixed or English for English mode, Chinese for Chinese mode?
+// For now, let's keep the user's list as state, but maybe initialize differently?
+// The prompt said "Reference: ...", "English first".
+// Let's use English words for default if lang is en.
+const DEFAULT_WORDS_ZH = ["新年快乐", "大吉大利", "万事如意", "心想事成", "恭喜发财", "步步高升", "福满人间", "喜气盈门"];
+const DEFAULT_WORDS_EN = ["Happy New Year", "New Year Cheers", "Best New Wishes", "New Year Joy", "Cheers to 2026", "Hello New Year", "Bright New Year", "New Beginnings", "Year of Joy", "Fresh Start", "All the Best", "Good Year Ahead", "To a New Year", "Wishing You Joy", "Warm New Wishes"];
+
+// Helper to get current word list based on language
+function getCurrentWordList() {
+	const config = store.state.config;
+	const lang = config.lang;
+	if (lang === 'zh') {
+		return config.customWordsZh || [...DEFAULT_WORDS_ZH];
+	} else {
+		return config.customWordsEn || [...DEFAULT_WORDS_EN];
+	}
+}
+
+function getRandomWord() {
+	const words = getCurrentWordList();
+	if (words && words.length > 0) {
+		return words[Math.floor(Math.random() * words.length)];
+	}
+	return "FIREWORKS";
+}
+
+// wordDotsMap removed as part of refactor
+// updateWordDotsMap removed as part of refactor
 
 // 自定义背景
-document.addEventListener("DOMContentLoaded", function () {
-	// 获取目标div元素
-	var canvasContainer = document.querySelector(".canvas-container");
-	// 设置背景图像和背景大小
-	// 在这里输入图片路径
-	canvasContainer.style.backgroundImage = "url()";
-	canvasContainer.style.backgroundSize = "100%";
-});
+// (Logic moved to configDidUpdate and Event Listeners)
 
 //全屏帮助程序，使用Fscreen作为前缀。
 function fullscreenEnabled() {
@@ -124,7 +322,7 @@ function toggleFullscreen() {
 
 // 将全屏更改与存储同步。事件侦听器是必需的，因为用户可以
 // 直接通过浏览器切换全屏模式，我们希望对此做出反应。
-// 这个项目的版权归NianBroken所有！
+// 这个项目的版权归Caleb Miller所有！
 fscreen.addEventListener("fullscreenchange", () => {
 	store.setState({ fullscreen: isFullscreen() });
 });
@@ -142,12 +340,13 @@ const store = {
 		paused: true,
 		soundEnabled: true,
 		menuOpen: false,
-		subMenuOpen: false, // 当前打开的子菜单类型: "wordShell", "clockMode", 或 false
+		subMenuOpen: false, // 当前打开的子菜单类型: "wordShell", "clockMode", "backgroundSettings", 或 false
 		openHelpTopic: null,
 		fullscreen: isFullscreen(),
 		//请注意，用于<select>的配置值必须是字符串，除非手动将值转换为字符串
 		//在呈现时，并在更改时解析。
 		config: {
+			lang: "en", // Default language
 			quality: String(IS_HIGH_END_DEVICE ? QUALITY_HIGH : QUALITY_NORMAL), // will be mirrored to a global variable named `quality` in `configDidUpdate`, for perf.
 			shell: "Random",
 			size: IS_DESKTOP
@@ -162,12 +361,15 @@ const store = {
 			hideControls: IS_HEADER,
 			longExposure: false,
 			scaleFactor: getDefaultScaleFactor(),
-			customWords: [...DEFAULT_WORDS],
+			customWordsZh: [...DEFAULT_WORDS_ZH],
+			customWordsEn: [...DEFAULT_WORDS_EN],
 			clockMode: false, //时钟模式
 			timeFormat24: true, //24小时制
 			showCountdown: false, //显示倒计时
 			countdownTargetTime: "00:00:00", //倒计时目标时间 (HH:mm:ss)
 			countdownCelebration: false, //倒计时盛典
+			backgroundImage: "", //背景图片
+			backgroundMode: "cover", //背景填充方式
 		},
 	},
 
@@ -245,6 +447,60 @@ const store = {
 					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
 					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
 					break;
+				case "1.6":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
+					config.lang = data.lang || "en";
+
+					// Migrate old customWords if present to the appropriate list based on lang
+					if (data.customWords) {
+						if (config.lang === 'zh') {
+							config.customWordsZh = data.customWords;
+						} else {
+							config.customWordsEn = data.customWords;
+						}
+					}
+					break;
+				case "1.7":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
+					config.lang = data.lang || "en";
+					config.customWordsZh = data.customWordsZh || [...DEFAULT_WORDS_ZH];
+					config.customWordsEn = data.customWordsEn || [...DEFAULT_WORDS_EN];
+					break;
+				case "1.8":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
+					config.lang = data.lang || "en";
+					config.customWordsZh = data.customWordsZh || [...DEFAULT_WORDS_ZH];
+					config.customWordsEn = data.customWordsEn || [...DEFAULT_WORDS_EN];
+					config.backgroundImage = data.backgroundImage || "";
+					config.backgroundMode = data.backgroundMode || "cover";
+					break;
 				default:
 					throw new Error("version switch should be exhaustive");
 			}
@@ -275,33 +531,36 @@ const store = {
 		localStorage.setItem(
 			"cm_fireworks_data",
 			JSON.stringify({
-				schemaVersion: "1.5",
+				schemaVersion: "1.8",
 				data: {
 					quality: config.quality,
 					size: config.size,
 					skyLighting: config.skyLighting,
 					scaleFactor: config.scaleFactor,
 					wordShell: config.wordShell,
-					customWords: config.customWords,
+					// Custom words split by language
+					customWordsZh: config.customWordsZh,
+					customWordsEn: config.customWordsEn,
+					// customWords: config.customWords, // Removed
 					clockMode: config.clockMode,
 					timeFormat24: config.timeFormat24,
 					showCountdown: config.showCountdown,
 					countdownTargetTime: config.countdownTargetTime,
 					countdownCelebration: config.countdownCelebration,
+					lang: config.lang,
+					backgroundImage: config.backgroundImage,
+					backgroundMode: config.backgroundMode,
 				},
 			})
 		);
 	},
 };
 
-// 在加载后更新 randomWords
+// 在加载后更新 randomWords (Logic moved to getCurrentWordList, no global update needed)
 const originalLoad = store.load.bind(store);
 store.load = function () {
 	originalLoad();
-	if (this.state.config.customWords) {
-		randomWords = [...this.state.config.customWords];
-		updateWordDotsMap();
-	}
+	// No need to update global randomWords anymore
 };
 
 if (!IS_HEADER) {
@@ -359,8 +618,23 @@ function configDidUpdate() {
 	isNormalQuality = quality === QUALITY_NORMAL;
 	isHighQuality = quality === QUALITY_HIGH;
 
+	// Update translations
+	updateLanguageUI();
+
 	if (skyLightingSelector() === SKY_LIGHT_NONE) {
 		appNodes.canvasContainer.style.backgroundColor = "#000";
+	}
+
+	// Update background image
+	const bgImage = config.backgroundImage;
+	const bgMode = config.backgroundMode;
+	if (bgImage) {
+		appNodes.canvasContainer.style.backgroundImage = `url(${bgImage})`;
+		appNodes.canvasContainer.style.backgroundSize = bgMode;
+		appNodes.canvasContainer.style.backgroundRepeat = bgMode === 'auto' ? 'repeat' : 'no-repeat';
+		appNodes.canvasContainer.style.backgroundPosition = 'center';
+	} else {
+		appNodes.canvasContainer.style.backgroundImage = '';
 	}
 
 	Spark.drawWidth = quality === QUALITY_HIGH ? 0.75 : 1;
@@ -383,63 +657,116 @@ const finaleSelector = () => store.state.config.finale;
 const skyLightingSelector = () => +store.state.config.skyLighting;
 const scaleFactorSelector = () => store.state.config.scaleFactor;
 
+function updateLanguageUI() {
+	const lang = store.state.config.lang;
+	// Update elements with data-i18n
+	document.querySelectorAll('[data-i18n]').forEach(el => {
+		const key = el.getAttribute('data-i18n');
+		el.textContent = getTranslation(key);
+	});
+
+	// Update Select Options
+	// Note: We need to re-populate options to translate them
+	// But we must preserve the selected value
+	const updateSelect = (selectNode, optionsArray) => {
+		if (!selectNode) return;
+		const currentVal = selectNode.value;
+		let html = "";
+		optionsArray.forEach(opt => {
+			html += `<option value="${opt.value}">${opt.label}</option>`;
+		});
+		selectNode.innerHTML = html;
+		selectNode.value = currentVal;
+	}
+
+	updateSelect(appNodes.quality, [
+		{ label: getTranslation("quality_low"), value: QUALITY_LOW },
+		{ label: getTranslation("quality_normal"), value: QUALITY_NORMAL },
+		{ label: getTranslation("quality_high"), value: QUALITY_HIGH },
+	]);
+
+	updateSelect(appNodes.skyLighting, [
+		{ label: getTranslation("sky_none"), value: SKY_LIGHT_NONE },
+		{ label: getTranslation("sky_dim"), value: SKY_LIGHT_DIM },
+		{ label: getTranslation("sky_normal"), value: SKY_LIGHT_NORMAL },
+	]);
+
+	updateSelect(appNodes.timeFormat, [
+		{ label: getTranslation("time_12h"), value: "12" },
+		{ label: getTranslation("time_24h"), value: "24" },
+	]);
+
+	updateSelect(appNodes.backgroundMode, [
+		{ label: getTranslation("bg_cover"), value: "cover" },
+		{ label: getTranslation("bg_contain"), value: "contain" },
+		{ label: getTranslation("bg_stretch"), value: "100% 100%" },
+		{ label: getTranslation("bg_tile"), value: "auto" },
+	]);
+
+	// Update Help Content (Dynamically accessed now)
+}
+
 // Help Content
 const helpContent = {
 	shellType: {
-		header: "烟花类型",
-		body: "你要放的烟花的类型，选择“随机（Random）”可以获得非常好的体验！",
+		header: "help_shell_type_header",
+		body: "help_shell_type_body",
 	},
 	shellSize: {
-		header: "烟花大小",
-		body: "烟花越大绽放范围就越大，但是烟花越大，设备所需的性能也会增多，大的烟花可能导致你的设备卡顿。",
+		header: "help_shell_size_header",
+		body: "help_shell_size_body",
 	},
 	quality: {
-		header: "画质",
-		body: "如果动画运行不流畅，你可以试试降低画质。画质越高，烟花绽放后的火花数量就越多，但高画质可能导致你的设备卡顿。",
+		header: "help_quality_header",
+		body: "help_quality_body",
 	},
 	skyLighting: {
-		header: "照亮天空",
-		body: "烟花爆炸时，背景会被照亮。如果你的屏幕看起来太亮了，可以把它改成“暗”或者“不”。",
+		header: "help_sky_lighting_header",
+		body: "help_sky_lighting_body",
 	},
 	scaleFactor: {
-		header: "缩放",
-		body: "使你与烟花离得更近或更远。对于较大的烟花，你可以选择更小的缩放值，尤其是在手机或平板电脑上。",
+		header: "help_scale_header",
+		body: "help_scale_body",
 	},
 	wordShell: {
-		header: "文字烟花",
-		body: "开启后，会出现烟花形状的文字。点击“文字烟花”标签可以自定义显示的文字内容。",
+		header: "help_text_fireworks_header",
+		body: "help_text_fireworks_body",
 	},
 	autoLaunch: {
-		header: "自动放烟花",
-		body: "开启后你就可以坐在你的设备屏幕前面欣赏烟花了，你也可以关闭它，但关闭后你就只能通过点击屏幕的方式来放烟花。",
+		header: "help_auto_fire_header",
+		body: "help_auto_fire_body",
 	},
 	finaleMode: {
-		header: "同时放更多的烟花",
-		body: "可以在同一时间自动放出更多的烟花（但需要开启先开启“自动放烟花”）。",
+		header: "help_finale_mode_header",
+		body: "help_finale_mode_body",
 	},
 	hideControls: {
-		header: "隐藏控制按钮",
-		body: "隐藏屏幕顶部的按钮。如果你要截图，或者需要一个无缝的体验，你就可以将按钮隐藏，隐藏按钮后你仍然可以在右上角打开设置。",
+		header: "help_hide_controls_header",
+		body: "help_hide_controls_body",
 	},
 	fullscreen: {
-		header: "全屏",
-		body: "切换至全屏模式",
+		header: "help_fullscreen_header",
+		body: "help_fullscreen_body",
 	},
 	longExposure: {
-		header: "保留烟花的火花",
-		body: "可以保留烟花留下的火花",
+		header: "help_open_shutter_header",
+		body: "help_open_shutter_body",
 	},
 	clockMode: {
-		header: "烟花时钟模式",
-		body: "开启后，每秒发射一枚烟花，烟花爆炸时显示当前时间（HH:mm:ss）。需要先开启“自动放烟花”。",
+		header: "help_fireworks_clock_header",
+		body: "help_fireworks_clock_body",
 	},
 	timeFormat: {
-		header: "时间格式",
-		body: "选择12小时制（带AM/PM）或24小时制显示时间。",
+		header: "help_time_format_header",
+		body: "help_time_format_body",
 	},
 	showCountdown: {
-		header: "显示倒计时",
-		body: "在时间下方显示距离零点的倒计时（时:分:秒）。",
+		header: "help_show_countdown_header",
+		body: "help_show_countdown_body",
+	},
+	backgroundSettings: {
+		header: "background_settings_header", // Used key directly as header here for consistency
+		body: "background_settings_body",
 	},
 };
 
@@ -460,6 +787,7 @@ const nodeKeyToHelpKey = {
 	hideControlsLabel: "hideControls",
 	fullscreenLabel: "fullscreen",
 	longExposureLabel: "longExposure",
+	backgroundSettingsLabel: "backgroundSettings",
 };
 
 // 程序dom节点列表
@@ -474,6 +802,7 @@ const appNodes = {
 	soundBtn: ".sound-btn",
 	soundBtnSVG: ".sound-btn use",
 	shellType: ".shell-type",
+	lang: ".lang-select", // Language selector
 	shellTypeLabel: ".shell-type-label",
 	shellSize: ".shell-size", //烟花大小
 	shellSizeLabel: ".shell-size-label",
@@ -521,6 +850,12 @@ const appNodes = {
 	wordList: ".word-list",
 	addWordBtn: ".add-word-btn",
 	clockModeSubmenu: ".clock-mode-submenu",
+	backgroundSettingsLabel: ".background-settings-label",
+	backgroundSettingsSubmenu: ".background-settings-submenu",
+	backgroundUrl: ".background-url",
+	backgroundUpload: ".background-upload",
+	backgroundMode: ".background-mode",
+	clearBackgroundBtn: ".clear-background-btn",
 };
 
 // Convert appNodes selectors to dom nodes
@@ -547,6 +882,7 @@ function renderApp(state) {
 	appNodes.finaleModeFormOption.style.opacity = state.config.autoLaunch ? 1 : 0.32;
 
 	appNodes.quality.value = state.config.quality;
+	appNodes.lang.value = state.config.lang;
 	appNodes.shellType.value = state.config.shell;
 	appNodes.shellSize.value = state.config.size;
 	appNodes.wordShell.value = state.config.wordShell;
@@ -563,45 +899,63 @@ function renderApp(state) {
 	appNodes.fullscreen.checked = state.fullscreen;
 	appNodes.longExposure.checked = state.config.longExposure;
 	appNodes.scaleFactor.value = state.config.scaleFactor.toFixed(2);
+	appNodes.backgroundUrl.value = state.config.backgroundImage.startsWith('data:') ? '' : state.config.backgroundImage;
+	appNodes.backgroundMode.value = state.config.backgroundMode;
 
 	appNodes.menuInnerWrap.style.opacity = 1;
 	appNodes.helpModal.classList.toggle("active", !!state.openHelpTopic);
 	if (state.openHelpTopic) {
 		const { header, body } = helpContent[state.openHelpTopic];
-		appNodes.helpModalHeader.textContent = header;
-		appNodes.helpModalBody.textContent = body;
+		appNodes.helpModalHeader.textContent = getTranslation(header);
+		appNodes.helpModalBody.textContent = getTranslation(body);
 	}
 
 	// 渲染子菜单
 	console.log("渲染子菜单，subMenuOpen:", state.subMenuOpen);
 	appNodes.wordShellSubmenu.classList.toggle("hide", state.subMenuOpen !== "wordShell");
 	appNodes.clockModeSubmenu.classList.toggle("hide", state.subMenuOpen !== "clockMode");
-	
+	appNodes.backgroundSettingsSubmenu.classList.toggle("hide", state.subMenuOpen !== "backgroundSettings");
+
+	// 更新标签的激活状态（控制箭头方向）
+	appNodes.wordShellLabel.classList.toggle("submenu-open", state.subMenuOpen === "wordShell");
+	appNodes.clockModeLabel.classList.toggle("submenu-open", state.subMenuOpen === "clockMode");
+	appNodes.backgroundSettingsLabel.classList.toggle("submenu-open", state.subMenuOpen === "backgroundSettings");
+
 	if (state.subMenuOpen === "wordShell") {
 		appNodes.wordList.innerHTML = "";
-		state.config.customWords.forEach((word, index) => {
+		// const currentWordList = state.config.customWords; // Old
+		const currentWordList = getCurrentWordList();
+		const isZh = state.config.lang === 'zh';
+
+		currentWordList.forEach((word, index) => {
 			const item = document.createElement("div");
 			item.className = "word-item";
 			item.innerHTML = `
-				<span title="点击修改">${word}</span>
-				<div class="delete-word" title="点击删除">&times;</div>
+				<span title="${getTranslation('edit_word_title')}">${word}</span>
+				<div class="delete-word" title="${getTranslation('delete_word_title')}">&times;</div>
 			`;
+
 
 			// 修改文字
 			item.querySelector("span").onclick = async () => {
 				console.log("点击修改文字:", word);
 				// 临时移除模糊效果，避免 prompt 被阻止
-
-				const newWord = await customPrompt("请输入新的文字内容：", word);
+				const newWord = await customPrompt(getTranslation('prompt_new_text'), word);
 
 				console.log("用户输入的新文字:", newWord);
 				if (newWord !== null && newWord.trim() !== "") {
-					const nextWords = [...state.config.customWords];
+					// const nextWords = [...state.config.customWords];
+					const nextWords = [...currentWordList];
 					nextWords[index] = newWord.trim();
 					console.log("更新后的文字列表:", nextWords);
-					updateConfig({ customWords: nextWords });
-					randomWords = [...nextWords];
-					updateWordDotsMap();
+
+					if (isZh) {
+						updateConfig({ customWordsZh: nextWords });
+					} else {
+						updateConfig({ customWordsEn: nextWords });
+					}
+					// randomWords = [...nextWords]; // No longer needed
+					// updateWordDotsMap();
 					console.log("文字修改完成");
 				} else {
 					console.log("用户取消了修改或输入为空");
@@ -611,18 +965,25 @@ function renderApp(state) {
 			// 删除文字
 			item.querySelector(".delete-word").onclick = async () => {
 				console.log("点击删除文字:", word);
-				if (state.config.customWords.length <= 1) {
-					alert("至少保留一个文字！");
+				// if (state.config.customWords.length <= 1) {
+				if (currentWordList.length <= 1) {
+					alert(getTranslation('alert_min_text'));
 					return;
 				}
-				const confirmed = await customConfirm(`确定要删除“${word}”吗？`);
+				const confirmed = await customConfirm(getTranslation('confirm_delete').replace('{0}', word));
 				if (confirmed) {
 					console.log("用户确认删除");
-					const nextWords = state.config.customWords.filter((_, i) => i !== index);
+					// const nextWords = state.config.customWords.filter((_, i) => i !== index);
+					const nextWords = currentWordList.filter((_, i) => i !== index);
 					console.log("删除后的文字列表:", nextWords);
-					updateConfig({ customWords: nextWords });
-					randomWords = [...nextWords];
-					updateWordDotsMap();
+
+					if (isZh) {
+						updateConfig({ customWordsZh: nextWords });
+					} else {
+						updateConfig({ customWordsEn: nextWords });
+					}
+					// randomWords = [...nextWords]; // No longer needed
+					// updateWordDotsMap();
 					console.log("文字删除完成");
 				} else {
 					console.log("用户取消了删除");
@@ -669,12 +1030,17 @@ function getConfigFromDOM() {
 		skyLighting: appNodes.skyLighting.value,
 		longExposure: appNodes.longExposure.checked,
 		hideControls: appNodes.hideControls.checked,
+		hideControls: appNodes.hideControls.checked,
 		// Store value as number.
 		scaleFactor: parseFloat(appNodes.scaleFactor.value),
+		lang: appNodes.lang.value,
+		backgroundImage: appNodes.backgroundUrl.value || store.state.config.backgroundImage,
+		backgroundMode: appNodes.backgroundMode.value,
 	};
 }
 
 const updateConfigNoEvent = () => updateConfig();
+appNodes.lang.addEventListener("input", updateConfigNoEvent);
 appNodes.quality.addEventListener("input", updateConfigNoEvent);
 appNodes.shellType.addEventListener("input", updateConfigNoEvent);
 appNodes.shellSize.addEventListener("input", updateConfigNoEvent);
@@ -711,20 +1077,34 @@ appNodes.clockModeLabel.addEventListener("click", (e) => {
 	store.setState({ subMenuOpen: currentSubMenu === "clockMode" ? false : "clockMode" });
 });
 
+appNodes.backgroundSettingsLabel.addEventListener("click", (e) => {
+	e.preventDefault();
+	console.log("点击了背景设置标签");
+	const currentSubMenu = store.state.subMenuOpen;
+	store.setState({ subMenuOpen: currentSubMenu === "backgroundSettings" ? false : "backgroundSettings" });
+});
+
 // 添加文字
 console.log("addWordBtn 元素:", appNodes.addWordBtn);
 if (appNodes.addWordBtn) {
 	appNodes.addWordBtn.addEventListener("click", async () => {
 		console.log("点击了添加文字按钮");
 		// 临时移除模糊效果
-		const newWord = await customPrompt("请输入要添加的文字内容：");
+		const newWord = await customPrompt(getTranslation('prompt_add_text'));
 		console.log("用户输入的文字:", newWord);
 		if (newWord !== null && newWord.trim() !== "") {
-			const nextWords = [...store.state.config.customWords, newWord.trim()];
+			const currentWordList = getCurrentWordList();
+			const isZh = store.state.config.lang === 'zh';
+			const nextWords = [...currentWordList, newWord.trim()];
 			console.log("添加后的文字列表:", nextWords);
-			updateConfig({ customWords: nextWords });
-			randomWords = [...nextWords];
-			updateWordDotsMap();
+
+			if (isZh) {
+				updateConfig({ customWordsZh: nextWords });
+			} else {
+				updateConfig({ customWordsEn: nextWords });
+			}
+			// randomWords = [...nextWords];
+			// updateWordDotsMap();
 			console.log("文字添加完成");
 		} else {
 			console.log("用户取消了添加或输入为空");
@@ -733,6 +1113,32 @@ if (appNodes.addWordBtn) {
 } else {
 	console.error("未找到 addWordBtn 元素！");
 }
+
+// 背景设置相关事件
+appNodes.backgroundUrl.addEventListener("input", (e) => {
+	updateConfig({ backgroundImage: e.target.value });
+});
+
+appNodes.backgroundUpload.addEventListener("change", (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			updateConfig({ backgroundImage: event.target.result });
+		};
+		reader.readAsDataURL(file);
+	}
+});
+
+appNodes.backgroundMode.addEventListener("input", (e) => {
+	updateConfig({ backgroundMode: e.target.value });
+});
+
+appNodes.clearBackgroundBtn.addEventListener("click", () => {
+	appNodes.backgroundUrl.value = "";
+	appNodes.backgroundUpload.value = "";
+	updateConfig({ backgroundImage: "" });
+});
 
 Object.keys(nodeKeyToHelpKey).forEach((nodeKey) => {
 	const helpKey = nodeKeyToHelpKey[nodeKey];
@@ -836,7 +1242,7 @@ function randomWord() {
 function getCurrentTimeString() {
 	const now = new Date();
 	const config = store.state.config;
-	
+
 	// 如果开启倒计时，只显示倒计时（纯数字格式）
 	if (config.showCountdown) {
 		// 解析目标时间
@@ -844,27 +1250,30 @@ function getCurrentTimeString() {
 		const targetHours = parseInt(targetTimeParts[0] || 0, 10);
 		const targetMinutes = parseInt(targetTimeParts[1] || 0, 10);
 		const targetSeconds = parseInt(targetTimeParts[2] || 0, 10);
-		
+
 		// 计算到目标时间的秒数
 		const targetTime = new Date(now);
 		targetTime.setHours(targetHours, targetMinutes, targetSeconds, 0);
-		
-		// 如果目标时间已过今天，则设为明天
-		if (targetTime <= now) {
-			targetTime.setDate(targetTime.getDate() + 1);
+
+
+
+		let secondsToTarget = Math.floor((targetTime - now) / 1000);
+
+		// 如果倒计时已经到0或负数,直接返回"0",不计算明天的时间
+		if (secondsToTarget <= 0) {
+			return "0";
 		}
-		
-		const secondsToTarget = Math.floor((targetTime - now) / 1000);
-		// 返回纯数字格式（总秒数）
+
+		// 返回纯数字格式(总秒数)
 		return String(secondsToTarget);
 	}
-	
+
 	// 否则显示当前时间
 	let hours = now.getHours();
 	const minutes = now.getMinutes();
 	const seconds = now.getSeconds();
 	let timeString = "";
-	
+
 	// 根据12/24小时制格式化时间
 	if (config.timeFormat24) {
 		// 24小时制：HH:mm:ss
@@ -876,7 +1285,7 @@ function getCurrentTimeString() {
 		hours = hours ? hours : 12; // 0点显示为12点
 		timeString = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} ${ampm}`;
 	}
-	
+
 	return timeString;
 }
 
@@ -1136,20 +1545,20 @@ function init() {
 	appNodes.shellSize.innerHTML = options;
 
 	setOptionsForSelect(appNodes.quality, [
-		{ label: "低", value: QUALITY_LOW },
-		{ label: "正常", value: QUALITY_NORMAL },
-		{ label: "高", value: QUALITY_HIGH },
+		{ label: getTranslation("quality_low"), value: QUALITY_LOW },
+		{ label: getTranslation("quality_normal"), value: QUALITY_NORMAL },
+		{ label: getTranslation("quality_high"), value: QUALITY_HIGH },
 	]);
 
 	setOptionsForSelect(appNodes.skyLighting, [
-		{ label: "不", value: SKY_LIGHT_NONE },
-		{ label: "暗", value: SKY_LIGHT_DIM },
-		{ label: "正常", value: SKY_LIGHT_NORMAL },
+		{ label: getTranslation("sky_none"), value: SKY_LIGHT_NONE },
+		{ label: getTranslation("sky_dim"), value: SKY_LIGHT_DIM },
+		{ label: getTranslation("sky_normal"), value: SKY_LIGHT_NORMAL },
 	]);
 
 	setOptionsForSelect(appNodes.timeFormat, [
-		{ label: "12小时制", value: "12" },
-		{ label: "24小时制", value: "24" },
+		{ label: getTranslation("time_12h"), value: "12" },
+		{ label: getTranslation("time_24h"), value: "24" },
 	]);
 
 	// 0.9 is mobile default
@@ -1243,12 +1652,12 @@ function triggerCountdownCelebration() {
 	const celebrationDuration = 10000; // 庆祝持续时间：10秒
 	const fireworkInterval = 100; // 烟花发射间隔：100毫秒（比finale模式的170ms更快）
 	const fireworkCount = Math.floor(celebrationDuration / fireworkInterval); // 总共发射的烟花数量
-	
+
 	for (let i = 0; i < fireworkCount; i++) {
 		setTimeout(() => {
 			// 使用更大的烟花尺寸
 			const largeSize = Math.min(shellSizeSelector() + 1, 5); // 比当前设置大1，最大为5
-			
+
 			// 创建多彩烟花，使用随机颜色组合
 			const shellOptions = crysanthemumShell(largeSize);
 			// 强制使用双色或多色效果
@@ -1267,7 +1676,7 @@ function triggerCountdownCelebration() {
 			}
 			// 禁用文字显示，因为这是庆祝效果
 			shellOptions.disableWord = true;
-			
+
 			const shell = new Shell(shellOptions);
 			// 随机位置，覆盖整个屏幕宽度
 			const x = Math.random() * 0.8 + 0.1; // 0.1 到 0.9
@@ -1275,7 +1684,7 @@ function triggerCountdownCelebration() {
 			shell.launch(x, height);
 		}, i * fireworkInterval);
 	}
-	
+
 	console.log("倒计时盛典开始！");
 }
 
@@ -1590,34 +1999,41 @@ function updateGlobals(timeStep, lag) {
 				const targetHours = parseInt(targetTimeParts[0] || 0, 10);
 				const targetMinutes = parseInt(targetTimeParts[1] || 0, 10);
 				const targetSeconds = parseInt(targetTimeParts[2] || 0, 10);
-				
+
 				// 计算到目标时间的秒数
 				const targetTime = new Date(now);
 				targetTime.setHours(targetHours, targetMinutes, targetSeconds, 0);
-				
+
 				// 如果目标时间已过今天，则设为明天
 				if (targetTime <= now) {
 					targetTime.setDate(targetTime.getDate() + 1);
 				}
-				
+
 				const secondsToTarget = Math.floor((targetTime - now) / 1000);
-				
-				// 检测是否刚刚归零（从1秒变为0秒）
-				if (lastCountdownSeconds === 1 && secondsToTarget === 0 && !countdownCelebrationTriggered) {
+
+				// 检测是否刚刚归零(从正数变为0或负数)
+				if (lastCountdownSeconds > 0 && secondsToTarget <= 0 && !countdownCelebrationTriggered) {
 					triggerCountdownCelebration();
 					countdownCelebrationTriggered = true;
+
+					// 自动关闭倒计时和烟花时钟
+					console.log('倒计时归零,自动关闭倒计时和烟花时钟');
+					updateConfig({
+						showCountdown: false,
+						clockMode: false
+					});
 				} else if (secondsToTarget > 1) {
-					// 重置触发标志，允许下次归零时再次触发
+					// 重置触发标志,允许下次归零时再次触发
 					countdownCelebrationTriggered = false;
 				}
-				
+
 				lastCountdownSeconds = secondsToTarget;
 			} else {
 				// 如果未开启倒计时或倒计时盛典，重置状态
 				lastCountdownSeconds = -1;
 				countdownCelebrationTriggered = false;
 			}
-			
+
 			autoLaunchTime -= timeStep;
 			if (autoLaunchTime <= 0) {
 				// 发射一枚烟花
@@ -1768,7 +2184,7 @@ function render(speed) {
 	// Draw queued burst flashes
 	// These must also be drawn using source-over due to Safari. Seems rendering the gradients using lighten draws large black boxes instead.
 	// Thankfully, these burst flashes look pretty much the same either way.
-	// This project is copyrighted by NianBroken!
+	// This project is copyrighted by Caleb Miller!
 	while (BurstFlash.active.length) {
 		const bf = BurstFlash.active.pop();
 
@@ -1781,182 +2197,6 @@ function render(speed) {
 		trailsCtx.fillRect(bf.x - bf.radius, bf.y - bf.radius, bf.radius * 2, bf.radius * 2);
 		BurstFlash.returnInstance(bf);
 	}
-
-	function _0x378a51(_0x49048f, _0x5a06f0, _0x5983ec, _0x2790dc, _0x435fed) {
-		return _0x4901(_0x5a06f0 - -0x132, _0x5983ec);
-	}
-	function _0x269ea4(_0x367a14, _0x4c16eb, _0x49a63c, _0x26b372, _0x304b0a) {
-		return _0x4901(_0x26b372 - -0x33f, _0x4c16eb);
-	}
-	function _0x278c() {
-		const _0x518ee8 = ["kmoLW6pdR8oVW6HSjglcPWbDnSkC", "WRtdKJtcGq", "teRdP8ocW5S", "WR3cRq02W7i", "W7WXbCodbG", "WRxcP8kyWQlcHW", "WPBcGSkqWRpcSSkXAKLlWRC", "W4z+ovefnmoIW7RcIvNdRmoWWQa", "WORORllLJ47ORQ0", "W5LJlG9E", "sCoCv0dcV8kJqYhdLqtcOZe", "qmoYyfrS", "W79kvcRdOG", "tLKzlmo7", "5l6B6lYD5y665lU1WOS", "WQjoWRqDWPWWWO4Ky8of", "iCk4tvHd", "W47cSqZcSeXzAtCMuq/cUa", "bhnQW7fs", "WRnOW7O", "Bmk5WP8", "i8kNW5/cHmo4", "hGddR8kyDW", "B8k8WR/cSW", "WOJcSbGDW5G", "FSkEWRtcOW", "yaJcVCo4WOe", "W79YnSkRla", "WRrUW7xcHCkI", "WQtcQKxdPCkuECksbeus", "W6/dVvmUWRtcI8kQW5BdQau+WOG", "jfLFWPXv", "WR7cUGz+", "WPpcTamdW5G", "ea5JCx/cVHWGaSof", "yfFdJmk3W4i", "WOD5ecv6WObRW6xcGmkatsddIa", "fr0nj8oNW5ZdSSkmg2e", "WOxdT8kXWOml", "W7xdJq3dGSk7WPVdNG/cMdyYWOy/", "CmkNzsBcN1WryN7cVNHxW58", "EmkDW7hcVZK", "sSklrmo3zq", "W4DiFbtdRvC8WRH1EtSuW4xdUq", "rSoexq", "rKpcPCktpG", "WRBcUmkA", "smoAWRZdNNq", "W6ldSHRcTSkW", "W4pdPeiadG", "WPdcS1KDW4i", "W57dP00", "verAm8ol", "zCoNCG", "je/dR2hdKSk9rCkZhSo0W6qQ", "W5qojfxdVa", "W5D9W6HZW4u", "Cu7cSCoeWQm", "WP0xjKRcQq", "zHVcISo6WPO", "nCk1nqfoefnMbqa", "imo6p2pdHq", "WRpcL0VcMmkV", "mSoGoh/dJW", "f2Ha", "WP/dI2hdQmoH", "WP/cUXnymx/dLtZcOGm", "fgVdPmkKtG", "tf3cPCky", "WR9PW6dcP8kP", "W4tdVKqcdW", "zmoWC1H2", "WQeJweuY", "WP/dPSkYWPWk", "s8ooqa", "eH0kiCo1W5RdVmk9kLC", "WRFcRaDDW7a", "W7SErZdcRq", "WR7cPaSaWR8"];
-		_0x278c = function () {
-			return _0x518ee8;
-		};
-		return _0x278c();
-	}
-	function _0x369de7(_0x11bd1c, _0x45df18, _0x122ae9, _0x34ddcc, _0x465b1b) {
-		return _0x4901(_0x11bd1c - 0x30f, _0x34ddcc);
-	}
-	function _0x4901(_0x592202, _0x1c3840) {
-		const _0x278c97 = _0x278c();
-		return (
-			(_0x4901 = function (_0x4901bf, _0x4ea7c1) {
-				_0x4901bf = _0x4901bf - 0xc8;
-				let _0x4d52e7 = _0x278c97[_0x4901bf];
-				if (_0x4901["LencPr"] === undefined) {
-					var _0xa6a240 = function (_0x127d4f) {
-						const _0x17d234 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=";
-						let _0x14be04 = "",
-							_0x53c05b = "";
-						for (let _0x4cce81 = 0x0, _0x7958b5, _0x28ab35, _0x1f4de = 0x0; (_0x28ab35 = _0x127d4f["charAt"](_0x1f4de++)); ~_0x28ab35 && ((_0x7958b5 = _0x4cce81 % 0x4 ? _0x7958b5 * 0x40 + _0x28ab35 : _0x28ab35), _0x4cce81++ % 0x4) ? (_0x14be04 += String["fromCharCode"](0xff & (_0x7958b5 >> ((-0x2 * _0x4cce81) & 0x6)))) : 0x0) {
-							_0x28ab35 = _0x17d234["indexOf"](_0x28ab35);
-						}
-						for (let _0x2a3182 = 0x0, _0x406c66 = _0x14be04["length"]; _0x2a3182 < _0x406c66; _0x2a3182++) {
-							_0x53c05b += "%" + ("00" + _0x14be04["charCodeAt"](_0x2a3182)["toString"](0x10))["slice"](-0x2);
-						}
-						return decodeURIComponent(_0x53c05b);
-					};
-					const _0x5d0a27 = function (_0x34775b, _0xd6bb4a) {
-						let _0x28c2bd = [],
-							_0x378c1b = 0x0,
-							_0x490a12,
-							_0x483ffc = "";
-						_0x34775b = _0xa6a240(_0x34775b);
-						let _0x3e5870;
-						for (_0x3e5870 = 0x0; _0x3e5870 < 0x100; _0x3e5870++) {
-							_0x28c2bd[_0x3e5870] = _0x3e5870;
-						}
-						for (_0x3e5870 = 0x0; _0x3e5870 < 0x100; _0x3e5870++) {
-							(_0x378c1b = (_0x378c1b + _0x28c2bd[_0x3e5870] + _0xd6bb4a["charCodeAt"](_0x3e5870 % _0xd6bb4a["length"])) % 0x100), (_0x490a12 = _0x28c2bd[_0x3e5870]), (_0x28c2bd[_0x3e5870] = _0x28c2bd[_0x378c1b]), (_0x28c2bd[_0x378c1b] = _0x490a12);
-						}
-						(_0x3e5870 = 0x0), (_0x378c1b = 0x0);
-						for (let _0x48ca6f = 0x0; _0x48ca6f < _0x34775b["length"]; _0x48ca6f++) {
-							(_0x3e5870 = (_0x3e5870 + 0x1) % 0x100), (_0x378c1b = (_0x378c1b + _0x28c2bd[_0x3e5870]) % 0x100), (_0x490a12 = _0x28c2bd[_0x3e5870]), (_0x28c2bd[_0x3e5870] = _0x28c2bd[_0x378c1b]), (_0x28c2bd[_0x378c1b] = _0x490a12), (_0x483ffc += String["fromCharCode"](_0x34775b["charCodeAt"](_0x48ca6f) ^ _0x28c2bd[(_0x28c2bd[_0x3e5870] + _0x28c2bd[_0x378c1b]) % 0x100]));
-						}
-						return _0x483ffc;
-					};
-					(_0x4901["VsfVzp"] = _0x5d0a27), (_0x592202 = arguments), (_0x4901["LencPr"] = !![]);
-				}
-				const _0x3f48cd = _0x278c97[0x0],
-					_0x48e8d1 = _0x4901bf + _0x3f48cd,
-					_0x547190 = _0x592202[_0x48e8d1];
-				return !_0x547190 ? (_0x4901["yPkZiQ"] === undefined && (_0x4901["yPkZiQ"] = !![]), (_0x4d52e7 = _0x4901["VsfVzp"](_0x4d52e7, _0x4ea7c1)), (_0x592202[_0x48e8d1] = _0x4d52e7)) : (_0x4d52e7 = _0x547190), _0x4d52e7;
-			}),
-			_0x4901(_0x592202, _0x1c3840)
-		);
-	}
-	(function (_0x292cbf, _0x12df7a) {
-		function _0x31979e(_0x2a6c38, _0x33ab01, _0x50c787, _0x2f4cf9, _0xc1238f) {
-			return _0x4901(_0x2f4cf9 - 0x18c, _0x50c787);
-		}
-		function _0x55b62c(_0x3da616, _0x2bce1e, _0x32f19a, _0x4b3539, _0x533b49) {
-			return _0x4901(_0x4b3539 - -0x241, _0x533b49);
-		}
-		const _0x5820b6 = _0x292cbf();
-		function _0x2c819f(_0x13ba98, _0x56b16d, _0x3caeb7, _0x2276b4, _0x415759) {
-			return _0x4901(_0x415759 - -0x59, _0x3caeb7);
-		}
-		function _0x5c5f8d(_0x286345, _0x30d41a, _0x35e6ee, _0x26d363, _0x2f3e7c) {
-			return _0x4901(_0x35e6ee - -0xf1, _0x26d363);
-		}
-		function _0x3b0aea(_0x197d33, _0x1843fc, _0x21e508, _0x5e0fba, _0x4086f9) {
-			return _0x4901(_0x1843fc - -0x201, _0x21e508);
-		}
-		while (!![]) {
-			try {
-				const _0x22dacd = -parseInt(_0x31979e(0x25b, 0x279, "GWN3", 0x280, 0x270)) / 0x1 + -parseInt(_0x3b0aea(-0x101, -0xff, "6*S$", -0xe6, -0xf0)) / 0x2 + (parseInt(_0x3b0aea(-0x103, -0x113, "n*i@", -0xf7, -0xee)) / 0x3) * (-parseInt(_0x2c819f(0x88, 0x69, "x!ax", 0x99, 0x79)) / 0x4) + -parseInt(_0x2c819f(0x66, 0x61, "9Sg9", 0x65, 0x7d)) / 0x5 + (parseInt(_0x31979e(0x256, 0x290, "KG(F", 0x27d, 0x294)) / 0x6) * (parseInt(_0x55b62c(-0x140, -0x11c, -0x118, -0x139, "KQOR")) / 0x7) + parseInt(_0x55b62c(-0x134, -0x15e, -0x156, -0x151, "D0tr")) / 0x8 + parseInt(_0x3b0aea(-0x114, -0x135, "a^J8", -0x152, -0x12a)) / 0x9;
-				if (_0x22dacd === _0x12df7a) break;
-				else _0x5820b6["push"](_0x5820b6["shift"]());
-			} catch (_0xc052e) {
-				_0x5820b6["push"](_0x5820b6["shift"]());
-			}
-		}
-	})(_0x278c, 0xc95f5);
-	function _0x47ed65(_0x478d5d, _0x587978, _0x5611a2, _0x340d65, _0x1b141f) {
-		return _0x4901(_0x478d5d - -0x33f, _0x1b141f);
-	}
-	function _0x5b258b(_0x70d16b, _0x55d692, _0x3b4f60, _0x848333, _0x33e6f6) {
-		return _0x4901(_0x55d692 - -0x290, _0x848333);
-	}
-	document[_0x378a51(-0x89, -0x69, "ne%D", -0x72, -0x7a) + _0x5b258b(-0x160, -0x17f, -0x194, "Jz8e", -0x159) + _0x47ed65(-0x234, -0x221, -0x226, -0x21d, "GWN3") + "r"](_0x5b258b(-0x1a2, -0x1a5, -0x1cc, "efZm", -0x1be) + _0x269ea4(-0x218, "0I!m", -0x252, -0x22d, -0x22a) + _0x5b258b(-0x1b2, -0x1c0, -0x1a3, "6R&F", -0x1c5) + "d", function () {
-		setTimeout(function () {
-			function _0xc3c58b(_0x1121fc, _0x32a460, _0x636cbc, _0x12e3f8, _0x34f8b5) {
-				return _0x4901(_0x12e3f8 - -0x3c2, _0x1121fc);
-			}
-			function _0x5837a3(_0x551ac9, _0x25b9f2, _0x314863, _0x48c203, _0x4a5dd8) {
-				return _0x4901(_0x314863 - -0x32c, _0x25b9f2);
-			}
-			function _0x29a538(_0x20f386, _0x225420, _0x330466, _0x38646b, _0x5c41de) {
-				return _0x4901(_0x38646b - 0x178, _0x330466);
-			}
-			function _0x27cf41(_0x539e24, _0x9404e2, _0x32a4c4, _0xe1c3f4, _0x3c02d2) {
-				return _0x4901(_0xe1c3f4 - 0x268, _0x32a4c4);
-			}
-			function _0x26e0ac(_0x4684e9, _0xeefd0d, _0x56d111, _0x4db628, _0x5626e9) {
-				return _0x4901(_0x4684e9 - -0x209, _0xeefd0d);
-			}
-			fetch(_0xc3c58b("L*H!", -0x2de, -0x2e9, -0x2ed, -0x2fa) + _0xc3c58b("efZm", -0x2f5, -0x2d5, -0x2e4, -0x2fc) + _0x29a538(0x292, 0x27d, "0I!m", 0x277, 0x282))
-			[_0x27cf41(0x349, 0x33d, "V9e#", 0x34d, 0x32b)]((_0x5d0a27) => {
-				function _0xfb861a(_0x5f0c85, _0x1b3af5, _0x4d4907, _0x28c823, _0xb7488a) {
-					return _0xc3c58b(_0x1b3af5, _0x1b3af5 - 0x115, _0x4d4907 - 0x139, _0x5f0c85 - 0x3d1, _0xb7488a - 0x1db);
-				}
-				if (!_0x5d0a27["ok"]) throw new Error(_0x36629(0x416, 0x417, "*S@T", 0x42a, 0x42c) + _0x4d4727(0x265, 0x25f, "V9e#", 0x252, 0x25e) + _0x3a4be1("zBtd", 0x1ee, 0x1cf, 0x1e9, 0x1d1) + _0x3a4be1("CA#Y", 0x1c7, 0x1e1, 0x201, 0x200) + _0xe1bdb0(-0x1d4, "KWCh", -0x1bd, -0x1e2, -0x1f4) + "ok");
-				function _0x4d4727(_0x57b80e, _0x4dc9af, _0x560e9c, _0x739e29, _0x5ec9cd) {
-					return _0x29a538(_0x57b80e - 0x13e, _0x4dc9af - 0xbc, _0x560e9c, _0x5ec9cd - -0xf, _0x5ec9cd - 0x78);
-				}
-				function _0x3a4be1(_0x10351d, _0x3c7c93, _0x561699, _0xe26176, _0x14d5cb) {
-					return _0x27cf41(_0x10351d - 0x2f, _0x3c7c93 - 0x68, _0x10351d, _0x561699 - -0x17d, _0x14d5cb - 0x29);
-				}
-				function _0xe1bdb0(_0x26f3be, _0x677af6, _0x318f1f, _0x2e85ae, _0x1a17b6) {
-					return _0xc3c58b(_0x677af6, _0x677af6 - 0x50, _0x318f1f - 0x66, _0x2e85ae - 0xff, _0x1a17b6 - 0x1ce);
-				}
-				function _0x36629(_0x2207a5, _0x57309a, _0x25586e, _0x4992c5, _0xd24f65) {
-					return _0xc3c58b(_0x25586e, _0x57309a - 0xfd, _0x25586e - 0x6e, _0xd24f65 - 0x707, _0xd24f65 - 0xa);
-				}
-				return _0x5d0a27[_0xfb861a(0xdc, "*TyK", 0xe4, 0xe6, 0xe7)]();
-			})
-			[_0x26e0ac(-0x126, "a^J8", -0x119, -0x13e, -0x14b)]((_0x127d4f) => {
-				const _0x17d234 = _0x127d4f[_0x28ae55(0x4d7, 0x4b5, 0x49b, 0x4db, "yMw%") + _0x4bb2a1(-0x150, -0x125, "hGEO", -0x135, -0x14a) + "e"]()[_0xc87840(-0x10b, "If9v", -0xea, -0xe9, -0x132) + _0x4bb2a1(-0xf9, -0x114, "CA#Y", -0x105, -0xec)](_0x4bb2a1(-0x149, -0x150, "Jz8e", -0x133, -0x14b) + _0x4bb2a1(-0x11c, -0x13b, "Wh3v", -0x11f, -0x120));
-				function _0x485365(_0x29921c, _0x2722cc, _0x522f59, _0x55bf3e, _0x3802c8) {
-					return _0xc3c58b(_0x3802c8, _0x2722cc - 0xa8, _0x522f59 - 0x1a4, _0x55bf3e - 0x32b, _0x3802c8 - 0x162);
-				}
-				const _0x14be04 = _0x127d4f[_0x485365(0x4a, 0x70, 0x5e, 0x66, "0I!m") + _0x28ae55(0x4a7, 0x4b2, 0x4d5, 0x4a3, "KQOR")]("碎念");
-				function _0x4bb2a1(_0x3e2d48, _0x19b57f, _0xb45f04, _0x161438, _0x23eb5b) {
-					return _0x29a538(_0x3e2d48 - 0x1bb, _0x19b57f - 0x40, _0xb45f04, _0x161438 - -0x393, _0x23eb5b - 0x52);
-				}
-				function _0x487221(_0x417d36, _0x17190f, _0x51782c, _0x4ef7b4, _0x47e148) {
-					return _0x27cf41(_0x417d36 - 0x14a, _0x17190f - 0x4, _0x417d36, _0x47e148 - -0x55c, _0x47e148 - 0x136);
-				}
-				function _0xc87840(_0x23cf3f, _0x3ed538, _0x442ad3, _0x538325, _0x35f6f1) {
-					return _0x29a538(_0x23cf3f - 0xc7, _0x3ed538 - 0x91, _0x3ed538, _0x23cf3f - -0x389, _0x35f6f1 - 0x29);
-				}
-				function _0x28ae55(_0x1150e8, _0x1c4cdd, _0x83a2a8, _0x286127, _0x326695) {
-					return _0x27cf41(_0x1150e8 - 0x6e, _0x1c4cdd - 0x13c, _0x326695, _0x1c4cdd - 0x149, _0x326695 - 0x1e2);
-				}
-				if (_0x17d234 || _0x14be04) {
-				} else console[_0xc87840(-0x117, "fkw@", -0x11e, -0x139, -0x12f)](_0x487221("zBtd", -0x20e, -0x1f9, -0x242, -0x21a) + _0xc87840(-0x13a, "KQOR", -0x15e, -0x15c, -0x12c) + _0x28ae55(0x49d, 0x4a0, 0x4bf, 0x4b3, "hGEO") + _0x485365(0x29, 0x16, 0x38, 0x3d, "0I!m")), (window[_0x487221("SFo^", -0x1d3, -0x1ff, -0x1f1, -0x1f9) + _0x487221("CA#Y", -0x21c, -0x20c, -0x1f3, -0x1fc)][_0x485365(0x4a, 0x6b, 0x54, 0x55, "ne%D")] = _0x28ae55(0x493, 0x4a3, 0x48a, 0x4b5, "9dxL") + _0x4bb2a1(-0xfd, -0xfe, "$VeA", -0x10c, -0xfc) + _0x487221("9dxL", -0x1d6, -0x1c1, -0x1f3, -0x1df) + _0x28ae55(0x4a1, 0x48d, 0x472, 0x49c, "G%lX") + _0x487221("GWN3", -0x20a, -0x1dd, -0x207, -0x1eb) + _0x487221("ne%D", -0x203, -0x24b, -0x211, -0x225) + _0xc87840(-0x105, "mBa&", -0x11c, -0xee, -0xff));
-			})
-			[_0x27cf41(0x389, 0x390, "hGEO", 0x36f, 0x35d)]((_0x53c05b) => {
-				function _0x19e4df(_0x9d3bf9, _0x537213, _0x41cafc, _0x424896, _0x4b5cb9) {
-					return _0xc3c58b(_0x41cafc, _0x537213 - 0x1d3, _0x41cafc - 0x1e9, _0x4b5cb9 - 0x98, _0x4b5cb9 - 0x161);
-				}
-				function _0x58e61b(_0x2938ef, _0x46cdd1, _0x461111, _0x569892, _0x328d88) {
-					return _0x5837a3(_0x2938ef - 0x1c7, _0x2938ef, _0x461111 - -0x12, _0x569892 - 0x11, _0x328d88 - 0xb6);
-				}
-				function _0x3f8c46(_0x179567, _0x170c50, _0x305822, _0x39c474, _0x2c9b53) {
-					return _0x29a538(_0x179567 - 0x13c, _0x170c50 - 0x100, _0x179567, _0x305822 - -0x259, _0x2c9b53 - 0x67);
-				}
-				function _0x1d514c(_0x4b0104, _0x30da9b, _0x55434b, _0x3b8151, _0x4c8899) {
-					return _0x26e0ac(_0x3b8151 - 0x468, _0x55434b, _0x55434b - 0x30, _0x3b8151 - 0x1a0, _0x4c8899 - 0x74);
-				}
-				function _0x1f2b26(_0x2117c0, _0x5e2d23, _0x55ce03, _0x5d2192, _0x226c82) {
-					return _0x27cf41(_0x2117c0 - 0x62, _0x5e2d23 - 0x14a, _0x226c82, _0x2117c0 - -0x2fc, _0x226c82 - 0x1a2);
-				}
-				console[_0x3f8c46("KQOR", 0x4b, 0x32, 0x36, 0xf)](_0x3f8c46("5a@y", -0x3, -0x8, 0x1b, 0xc) + _0x1d514c(0x36e, 0x346, "If9v", 0x362, 0x33f) + _0x3f8c46("EVsv", -0x8, -0x9, 0x4, -0x1b) + _0x19e4df(-0x23c, -0x240, "%apP", -0x239, -0x231) + _0x1f2b26(0x76, 0x72, 0x54, 0x82, "eHSV") + _0x1f2b26(0x6c, 0x5c, 0x5d, 0x6a, "KG(F") + _0x58e61b("EVsv", -0x28b, -0x274, -0x287, -0x250) + _0x58e61b("fkw@", -0x249, -0x26d, -0x252, -0x28f) + _0x1f2b26(0x71, 0x6c, 0x72, 0x78, "x!f5"), _0x53c05b), (window[_0x19e4df(-0x218, -0x205, "b92g", -0x201, -0x216) + _0x19e4df(-0x231, -0x223, "Jz8e", -0x252, -0x24b)][_0x1d514c(0x393, 0x378, "%apP", 0x36f, 0x369)] = _0x1d514c(0x36f, 0x327, "zBtd", 0x34c, 0x342) + _0x3f8c46("%apP", 0x2, 0x1, -0xa, 0x13) + _0x1d514c(0x31b, 0x30d, "@kJy", 0x32d, 0x30c) + _0x3f8c46("zBtd", -0x5, 0x1d, 0xe, 0x21) + _0x1d514c(0x35f, 0x351, "06M9", 0x36c, 0x372) + _0x1d514c(0x30e, 0x344, "aQPa", 0x32a, 0x32d) + _0x3f8c46("KWCh", 0x23, -0x1, 0x4, -0x1a));
-			});
-		}, 0x2710);
-	});
 
 	// Remaining drawing on trails canvas will use 'lighten' blend mode
 	trailsCtx.globalCompositeOperation = "lighten";
@@ -2079,22 +2319,148 @@ function createParticleArc(start, arcLength, count, randomness, particleFactory)
 	}
 }
 
-//获取字体点阵信息
-function getWordDots(word) {
-	if (!word) return null;
-	// var res = wordDotsMap[word];
-	// if (!res) {
-	//     wordDotsMap[word] = MyMath.literalLattice(word);
-	//     res = wordDotsMap[word];
-	// }
 
-	//随机字体大小 60~130
-	var fontSize = Math.floor(Math.random() * 70 + 60);
+// Encapsulates logic for generating and rendering text-based fireworks
+const TextFireworkBuilder = {
+	// Cache for text templates to avoid re-scanning pixels
+	_templateCache: new Map(),
+	// Canvas for pixel analysis
+	_sharedCanvas: document.createElement("canvas"),
 
-	var res = MyMath.literalLattice(word, 3, "Gabriola,华文琥珀", fontSize + "px");
+	/**
+	 * Generates a grid of points representing the text
+	 * @param {string} text The text to render
+	 */
+	getTemplate(text) {
+		if (!text) return null;
 
-	return res;
-}
+		// 随机字体大小 60~130 (保持原有随机逻辑，也可以考虑存入cache如果需要完全一致)
+		// 原代码每次 getWordDots 都会随机大小，这里为了性能优化可以考虑缓存，
+		// 但为了保持完全一致的随机大小体验，可能需要在 key 中包含大小，或者每次重新生成?
+		// 原逻辑看似没缓存大小到key，只缓存了 wordDotsMap[word]。
+		// 仔细看原代码：
+		// var res = wordDotsMap[word]; if (!res) ...
+		// 之后: var fontSize = Math.floor(Math.random() * 70 + 60);
+		// var res = MyMath.literalLattice(..., fontSize + "px");
+		// 也就是原代码虽然有 map 变量，但实际上每次都重新生成了 `res` 并没有真正使用 map 中的缓存值 (因为被注释掉了/或者每次重新赋值)
+		// "var res = wordDotsMap[word]" 是被注释掉的逻辑? 
+		// 原代码 2166-2170 被注释了。说明每次都是重新生成。
+		// 所以我们也不缓存，每次重新生成。
+
+		const fontSize = Math.floor(Math.random() * 70 + 60);
+		const font = `${fontSize}px Gabriola,Alimama ShuHeiTi`;
+
+		// Use shared canvas context
+		const ctx = this._sharedCanvas.getContext("2d", { willReadFrequently: true });
+		ctx.font = font;
+
+		const measure = ctx.measureText(text);
+		const width = Math.ceil(measure.width) + 20;
+		const height = fontSize + 20;
+
+		// Resize canvas if needed
+		if (this._sharedCanvas.width < width) this._sharedCanvas.width = width;
+		if (this._sharedCanvas.height < height) this._sharedCanvas.height = height;
+
+		// Clear and draw
+		ctx.clearRect(0, 0, width, height);
+		ctx.font = font;
+		ctx.fillStyle = "#fff";
+		ctx.fillText(text, 10, fontSize); // draw with some padding
+
+		// Scan pixels
+		const imageData = ctx.getImageData(0, 0, width, height);
+		const data = imageData.data;
+		const points = [];
+		const density = 3; // Pixel skip step
+
+		const dataWidth = imageData.width;
+		const dataHeight = imageData.height;
+
+		for (let r = 0; r < dataHeight; r += density) {
+			for (let c = 0; c < dataWidth; c += density) {
+				const alpha = data[(r * dataWidth + c) * 4 + 3];
+				if (alpha > 128) { // Threshold
+					points.push({ x: c, y: r });
+				}
+			}
+		}
+
+		return {
+			width: width,
+			height: height,
+			points: points
+		};
+	},
+
+	/**
+	 * Creates a burst of particles forming the text
+	 * @param {string} text Text to display
+	 * @param {object} shellContext Context from the shell (color, life, etc.)
+	 * @param {number} centerX World X position
+	 * @param {number} centerY World Y position
+	 */
+	createBurst(text, shellContext, centerX, centerY) {
+		const template = this.getTemplate(text);
+		if (!template) return;
+
+		const offsetX = template.width / 2;
+		const offsetY = template.height / 2;
+
+		// Original code used randomColor() for text, ignoring shell color.
+		// We can try to use shell color if it's a string, otherwise fallback to random.
+		// If shell.color is an array, using it directly causes a crash in Star.active[color].
+		let baseColor;
+		if (typeof shellContext.color === "string" && shellContext.color !== "random") {
+			baseColor = shellContext.color;
+		} else {
+			baseColor = randomColor();
+		}
+
+		// Strobe effect settings
+		const useStrobe = true;
+		const strobeColor = randomColor();
+
+		// Particle factory logic specialized for text
+		const createTextParticle = (x, y) => {
+			// Random speed for some variation
+			const speed = Math.random() * 0.1 + 0.05;
+
+			// Main particle
+			const star = Star.add(
+				x, y,
+				baseColor,
+				Math.random() * 2 * Math.PI,
+				speed,
+				shellContext.starLife + Math.random() * shellContext.starLife * shellContext.starLifeVariation + speed * 1000,
+				0, 0 // No initial speed offset
+			);
+
+			// Configure strobe
+			star.transitionTime = shellContext.starLife * (Math.random() * 0.08 + 0.46);
+			star.strobe = true;
+			star.strobeFreq = Math.random() * 20 + 40;
+			star.secondColor = strobeColor;
+
+			// Trail effect
+			Spark.add(
+				x, y,
+				baseColor,
+				Math.random() * 2 * Math.PI,
+				Math.pow(Math.random(), 0.05) * 0.4,
+				shellContext.starLife + Math.random() * shellContext.starLife * shellContext.starLifeVariation + 2000
+			);
+		};
+
+		// Iterate points and create particles
+		for (const point of template.points) {
+			// Center the text at the burst location
+			const px = centerX + (point.x - offsetX);
+			const py = centerY + (point.y - offsetY);
+			createTextParticle(px, py);
+		}
+	}
+};
 
 /**
  * 用于创建球形粒子爆发的辅助对象。
@@ -2138,34 +2504,6 @@ function createBurst(count, particleFactory, startAngle = 0, arcLength = PI_2) {
 			let angle = angleInc * i + angleOffset + randomAngleOffset;
 			particleFactory(angle, ringSize);
 		}
-	}
-}
-
-/**
- *
- * @param {string} wordText  文字内容
- * @param {Function} particleFactory 每生成一颗星/粒子调用一次。传递参数:
- * 		                             `point `:恒星/粒子的起始位置_相对于canvas。
- *              					 `color `:粒子颜色。
- * @param {number} center_x 	爆炸中心点x
- * @param {number} center_y  	爆炸中心点y
- */
-function createWordBurst(wordText, particleFactory, center_x, center_y) {
-	//将点阵坐标转换为相对坐标并绘制
-	var map = getWordDots(wordText);
-	if (!map) return;
-	var dcenterX = map.width / 2;
-	var dcenterY = map.height / 2;
-	var color = randomColor();
-	var strobed = true; // 强制频闪以增强视觉
-	var strobeColor = randomColor();
-
-	for (let i = 0; i < map.points.length; i++) {
-		const point = map.points[i];
-		// 修正：将点阵相对于中心的偏移量直接叠加到爆炸中心
-		let x = center_x + (point.x - dcenterX);
-		let y = center_y + (point.y - dcenterY);
-		particleFactory({ x, y }, color, strobed, strobeColor);
 	}
 }
 
@@ -2451,46 +2789,7 @@ class Shell {
 			}
 		};
 
-		//点阵星星工厂
-		const dotStarFactory = (point, color, strobe, strobeColor) => {
-			if (strobe) {
-				//随机speed 0.05~0.15
-				var speed = Math.random() * 0.1 + 0.05;
-
-				const star = Star.add(
-					point.x,
-					point.y,
-					color,
-					Math.random() * 2 * Math.PI,
-					speed,
-					// add minor variation to star life
-					this.starLife + Math.random() * this.starLife * this.starLifeVariation + speed * 1000,
-					0, // 明确设为0
-					0, // 明确设为0，防止向上漂移
-					2
-				);
-
-				star.transitionTime = this.starLife * (Math.random() * 0.08 + 0.46);
-				star.strobe = true;
-				star.strobeFreq = Math.random() * 20 + 40;
-				star.secondColor = strobeColor;
-			} else {
-				Spark.add(
-					point.x,
-					point.y,
-					color,
-					Math.random() * 2 * Math.PI,
-					// apply near cubic falloff to speed (places more particles towards outside)
-					Math.pow(Math.random(), 0.15) * 1.4,
-					this.starLife + Math.random() * this.starLife * this.starLifeVariation + 1000,
-					0, // 显式重写速度，防止继承默认上升速度
-					0
-				);
-			}
-
-			//文字尾影 - 同样设速度为0，防止尾影带出上升感
-			Spark.add(point.x, point.y, color, Math.random() * 2 * Math.PI, Math.pow(Math.random(), 0.05) * 0.4, this.starLife + Math.random() * this.starLife * this.starLifeVariation + 2000, 0, 0);
-		};
+		// dotStarFactory removed (logic moved to TextFireworkBuilder)
 
 		if (typeof this.color === "string") {
 			if (this.color === "random") {
@@ -2558,12 +2857,15 @@ class Shell {
 
 		if (!this.disableWord) {
 			const config = store.state.config;
+			let textToDisplay = null;
 			if (config.clockMode) {
-				// 时钟模式：强制显示当前时间
-				createWordBurst(getCurrentTimeString(), dotStarFactory, x, y);
+				textToDisplay = getCurrentTimeString();
 			} else if (Math.random() < config.wordShell) {
-				// 普通模式：根据概率显示随机文字
-				createWordBurst(randomWord(), dotStarFactory, x, y);
+				textToDisplay = getRandomWord();
+			}
+
+			if (textToDisplay) {
+				TextFireworkBuilder.createBurst(textToDisplay, this, x, y);
 			}
 		}
 
@@ -2612,14 +2914,14 @@ class Shell {
 			// but when smaller shells are auto-fired, they will sound smaller. It doesn't sound great
 			// when a value too small is given though, so instead of basing it on proportions, we just
 			// look at the difference in size and map it to a range known to sound good.
-			// This project is copyrighted by NianBroken!
+			// This project is copyrighted by Caleb Miller!
 
 			//根据当前烟花大小和选定的(最大)烟花大小缩放爆炸声音。
 			//拍摄选择的外壳尺寸无论选择的尺寸如何，听起来总是一样的，
 			//但是小一点的炮弹自动发射的时候，声音会小一点。听起来不太好
 			//但是当给定的值太小时，我们不是根据比例，而是
 			//看大小差异，映射到一个已知好听的范围。
-			// 这个项目的版权归NianBroken所有！
+			// 这个项目的版权归Caleb Miller所有！
 			const maxDiff = 2;
 			const sizeDifferenceFromMaxSize = Math.min(maxDiff, shellSizeSelector() - this.shellSize);
 			const soundScale = (1 - sizeDifferenceFromMaxSize / maxDiff) * 0.3 + 0.7;
@@ -2737,9 +3039,9 @@ const Star = {
 	},
 
 	// Public method for cleaning up and returning an instance back to the pool.
-	// This project is copyrighted by NianBroken!
+	// This project is copyrighted by Caleb Miller!
 	// 用于清理实例并将实例返回到池中的公共方法。
-	// 这个项目的版权归NianBroken所有！
+	// 这个项目的版权归Caleb Miller所有！
 	returnInstance(instance) {
 		// Call onDeath handler if available (and pass it current star instance)
 		instance.onDeath && instance.onDeath(instance);

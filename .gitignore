@@ -1,0 +1,12 @@
+# Dependencies
+node_modules/
+
+# IDEs and Editors
+.vscode/
+
+# Testing
+test-results/
+tests/
+
+# Project Specific backups
+css/style_backup.css

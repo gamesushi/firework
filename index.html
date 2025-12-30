@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="UTF-8" />
-	<title>烟花模拟器</title>
+	<title>Firework Simulator</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -49,8 +49,8 @@
 	<!-- App -->
 	<div class="container">
 		<div class="loading-init">
-			<div class="loading-init__header">加载中</div>
-			<div class="loading-init__status">正在装配烟花</div>
+			<div class="loading-init__header">Loading</div>
+			<div class="loading-init__status">Assembling Shells</div>
 		</div>
 		<div class="stage-container remove">
 			<div class="canvas-container">
@@ -81,80 +81,122 @@
 							<use href="#icon-close" xlink:href="#icon-close"></use>
 						</svg>
 					</div>
-					<div class="menu__header">设置</div>
-					<div class="menu__subheader">鼠标悬停查看设置详情，点击展开子菜单</div>
+					<div class="menu__header" data-i18n="settings">Settings</div>
+					<div class="menu__subheader" data-i18n="settings_subheader">Hover over the mouse to view setting
+						details; click to expand the submenu.</div>
 					<form>
 						<div class="form-option form-option--select">
-							<label class="shell-type-label"> 烟花类型 </label>
+							<label class="lang-label" data-i18n="language_label">Language</label>
+							<select class="lang-select">
+								<option value="en">English</option>
+								<option value="zh">中文</option>
+							</select>
+						</div>
+						<div class="form-option form-option--select">
+							<label class="shell-type-label" data-i18n="shell_type">Shell Type</label>
 							<select class="shell-type"></select>
 						</div>
 						<div class="form-option form-option--select">
-							<label class="shell-size-label"> 烟花大小 </label>
+							<label class="shell-size-label" data-i18n="shell_size">Shell Size</label>
 							<select class="shell-size"></select>
 						</div>
 						<div class="form-option form-option--select">
-							<label class="quality-ui-label"> 画质 </label>
+							<label class="quality-ui-label" data-i18n="quality">Quality</label>
 							<select class="quality-ui"></select>
 						</div>
 						<div class="form-option form-option--select">
-							<label class="sky-lighting-label"> 照亮天空 </label>
+							<label class="sky-lighting-label" data-i18n="sky_lighting">Sky Lighting</label>
 							<select class="sky-lighting"></select>
 						</div>
 						<div class="form-option form-option--select">
-							<label class="scaleFactor-label"> 缩放 </label>
+							<label class="scaleFactor-label" data-i18n="scale">Scale</label>
 							<select class="scaleFactor"></select>
 						</div>
 						<div class="form-option form-option--range">
-							<label class="word-shell-label" style="cursor: pointer;"> 文字烟花 </label>
+							<label class="word-shell-label" style="cursor: pointer;" data-i18n="text_fireworks">Text
+								Fireworks</label>
 							<input class="word-shell" type="range" min="0" max="1" step="0.01" value="0.3" />
 							<span class="word-shell-value">30%</span>
 						</div>
 						<div class="word-shell-submenu hide">
 							<div class="word-list"></div>
 							<div class="word-actions">
-								<button type="button" class="add-word-btn">添加文字</button>
+								<button type="button" class="add-word-btn" data-i18n="add_text">Add Text</button>
 							</div>
 						</div>
 						<div class="form-option form-option--checkbox">
-							<label class="auto-launch-label"> 自动放烟花 </label>
+							<label class="auto-launch-label" data-i18n="auto_fire">Auto Fire</label>
 							<input class="auto-launch" type="checkbox" />
 						</div>
 						<div class="form-option form-option--checkbox">
-							<label class="clock-mode-label" style="cursor: pointer;"> 烟花时钟模式 </label>
+							<label class="clock-mode-label" style="cursor: pointer;"
+								data-i18n="fireworks_clock">Fireworks Clock</label>
 							<input class="clock-mode" type="checkbox" />
 						</div>
 						<div class="clock-mode-submenu hide">
 							<div class="form-option form-option--select">
-								<label class="time-format-label"> 时间格式 </label>
+								<label class="time-format-label" data-i18n="time_format">Time Format</label>
 								<select class="time-format"></select>
 							</div>
 							<div class="form-option form-option--checkbox">
-								<label class="show-countdown-label"> 显示倒计时 </label>
+								<label class="show-countdown-label" data-i18n="show_countdown">Show Countdown</label>
 								<input class="show-countdown" type="checkbox" />
 							</div>
 							<div class="form-option">
-								<label class="countdown-target-time-label"> 倒计时目标时间 (HH:mm:ss) </label>
-								<input class="countdown-target-time" type="text" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}" placeholder="00:00:00" />
+								<label class="countdown-target-time-label" data-i18n="countdown_target">Countdown Target
+									(HH:mm:ss)</label>
+								<input class="countdown-target-time" type="text" pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
+									placeholder="00:00:00" />
 							</div>
 							<div class="form-option form-option--checkbox">
-								<label class="countdown-celebration-label"> 倒计时盛典 </label>
+								<label class="countdown-celebration-label" data-i18n="countdown_celebration">Countdown
+									Celebration</label>
 								<input class="countdown-celebration" type="checkbox" />
 							</div>
 						</div>
 						<div class="form-option form-option--checkbox form-option--finale-mode">
-							<label class="finale-mode-label"> 同时放更多的烟花 </label>
+							<label class="finale-mode-label" data-i18n="finale_mode">Finale Mode</label>
 							<input class="finale-mode" type="checkbox" />
 						</div>
+						<div class="form-option">
+							<label class="background-settings-label" style="cursor: pointer;"
+								data-i18n="background_settings">Background Settings</label>
+						</div>
+						<div class="background-settings-submenu hide">
+							<div class="form-option">
+								<label data-i18n="background_url">Image URL</label>
+								<input class="background-url" type="text" placeholder="https://example.com/bg.jpg"
+									style="width: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px;" />
+							</div>
+							<div class="form-option">
+								<label data-i18n="background_upload">Upload Image</label>
+								<input class="background-upload" type="file" accept="image/*"
+									style="width: 50%; font-size: 0.8rem;" />
+							</div>
+							<div class="form-option form-option--select">
+								<label data-i18n="background_mode">Background Mode</label>
+								<select class="background-mode">
+									<option value="cover" data-i18n="bg_cover">Cover</option>
+									<option value="contain" data-i18n="bg_contain">Contain</option>
+									<option value="100% 100%" data-i18n="bg_stretch">Stretch</option>
+									<option value="auto" data-i18n="bg_tile">Tile</option>
+								</select>
+							</div>
+							<div class="form-option" style="justify-content: center;">
+								<button type="button" class="clear-background-btn add-word-btn"
+									data-i18n="clear_background">Clear Background</button>
+							</div>
+						</div>
 						<div class="form-option form-option--checkbox">
-							<label class="hide-controls-label"> 隐藏控制按钮 </label>
+							<label class="hide-controls-label" data-i18n="hide_controls">Hide Controls</label>
 							<input class="hide-controls" type="checkbox" />
 						</div>
 						<div class="form-option form-option--checkbox form-option--fullscreen">
-							<label class="fullscreen-label"> 全屏 </label>
+							<label class="fullscreen-label" data-i18n="fullscreen">Fullscreen</label>
 							<input class="fullscreen" type="checkbox" />
 						</div>
 						<div class="form-option form-option--checkbox">
-							<label class="long-exposure-label"> 保留烟花的火花 </label>
+							<label class="long-exposure-label" data-i18n="open_shutter">Open Shutter</label>
 							<input class="long-exposure" type="checkbox" />
 						</div>
 					</form>
@@ -162,7 +204,8 @@
 						<p class="copyright">
 							<script>
 								var mydate = new Date();
-								document.writeln("Copyright&nbsp;&copy;&nbsp;2021 - " + mydate.getFullYear() + '&nbsp;<a target="_blank" href="https://www.nianbroken.top/">碎念_Nian</a><br />All&nbsp;Rights&nbsp;Reserved');
+								document.writeln("Copyright&nbsp;&copy;&nbsp;2021 - " + mydate.getFullYear() + '&nbsp;<a target="_blank" href="https://codepen.io/MillerTime/pen/XgpNwb">Caleb Miller</a><br />');
+								document.writeln("Modifications Copyright&nbsp;&copy;&nbsp;2025&nbsp;<a target=\"_blank\" href=\"https://github.com/gamesushi\">gamesushi</a><br />All&nbsp;Rights&nbsp;Reserved");
 							</script>
 						</p>
 					</div>
@@ -174,7 +217,7 @@
 			<div class="help-modal__dialog">
 				<div class="help-modal__header"></div>
 				<div class="help-modal__body"></div>
-				<button type="button" class="help-modal__close-btn">关闭</button>
+				<button type="button" class="help-modal__close-btn" data-i18n="close">Close</button>
 			</div>
 		</div>
 		<div class="custom-dialog">
@@ -183,8 +226,10 @@
 				<div class="custom-dialog__header"></div>
 				<input type="text" class="custom-dialog__input" />
 				<div class="custom-dialog__buttons">
-					<button type="button" class="custom-dialog__btn custom-dialog__btn--cancel">取消</button>
-					<button type="button" class="custom-dialog__btn custom-dialog__btn--confirm">确定</button>
+					<button type="button" class="custom-dialog__btn custom-dialog__btn--cancel"
+						data-i18n="cancel">Cancel</button>
+					<button type="button" class="custom-dialog__btn custom-dialog__btn--confirm"
+						data-i18n="confirm">Confirm</button>
 				</div>
 			</div>
 		</div>

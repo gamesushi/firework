@@ -1,46 +1,105 @@
 <div align="center">
 
-# 烟花模拟器
+# 烟花模拟器（Firework Simulator）
 
-一个可以模拟各种烟花效果的网页
+一个基于 Web 的烟花效果模拟器，  
+可展示多种绚丽多彩的烟花动画效果，  
+并支持文字烟花、时钟烟花与跨年倒计时，  
+营造仿佛置身真实烟花世界的沉浸式体验。
 
-它可以展示各种绚丽多彩的烟花效果 并让人仿佛置身于真实烟花的绚丽世界之中
-
-<img src="./Image_Preview.png" alt="主界面" style="zoom:35%;" />
+A web-based firework simulation project  
+featuring colorful firework effects,  
+text fireworks, clock fireworks, and New Year countdown support,  
+creating an immersive and celebratory visual experience.
 
 </div>
 
-## 预览
+---
 
-- [https://nianbroken.github.io/Firework_Simulator/](https://nianbroken.github.io/Firework_Simulator/ "https://nianbroken.github.io/Firework_Simulator/")
+## 预览 / Live Demo
 
-## 配置修改
+- 🌐 在线预览 / Live Preview  
+  https://gamesushi.github.io/Firework/
 
-- 在 `js` → `script.js` 的第 81 行处可以修改文字烟花中的文字
+---
 
-- 在 `js` → `script.js` 的第 93 行处可以修改烟花的背景
+## 功能说明 / Features
 
-- 在 `js` → `script.js` 的第 151 行处可以修改默认是否开启文字烟花
+### 🎆 烟花效果 / Firework Effects
+- 支持多种粒子烟花动画效果  
+- Multiple particle-based firework animations
 
-## 许可证
+### 🔤 文字烟花 / Text Fireworks
+- 支持自定义文字内容的烟花展示  
+- Custom text rendered as firework patterns
 
-`Copyright © 2022 NianBroken. All rights reserved.`
+### 🕒 时钟烟花 / Clock Fireworks
+- 以烟花形式实时展示当前时间  
+- Real-time clock displayed using firework effects
 
-本项目采用 [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0 "Apache-2.0") 许可证。简而言之，你可以自由使用、修改和分享本项目的代码，但前提是在其衍生作品中必须保留原始许可证和版权信息，并且必须以相同的许可证发布所有修改过的代码。
+### 🎉 跨年倒计时 / New Year Countdown
+- 支持零点 / 跨年倒计时展示  
+- 倒计时结束时可触发盛大的烟花效果  
+- Countdown-to-midnight with celebratory firework launch
 
-## 特别感谢
+### ⚙️ 可配置性 / Customization
+- 支持背景、显示参数与行为逻辑配置  
+- Customizable background, display, and behavior settings
 
-- [Firework Simulator v2](https://codepen.io/MillerTime/pen/XgpNwb)
+本项目适合作为：
+- 节日展示页面  
+- 跨年倒计时页面  
+- 创意前端特效示例  
 
-- [haodong108/fireworks-2023](https://gitee.com/haodong108/fireworks-2023)
+Suitable for:
+- Festival or celebration pages  
+- New Year countdown displays  
+- Creative front-end visual demos  
 
-## 最便宜的 VPN
+---
 
-[https://nianbroken.github.io/Great-Firewall/](https://nianbroken.github.io/Great-Firewall/)
+## 项目来源与二次开发说明  
+## Project Origin & Derivative Work Notice
 
-## 性价比最高的 ChatGPT 镜像站
-[Aizex 合租面板](https://aizex.klaio.top/)
+本项目基于以下开源示例进行二次开发：
 
-## 其他
+- 原项目名称 / Original Project：**Firework Simulator**
+- 原作者 / Original Author：**Caleb Miller**
+- 原始地址 / Source URL：  
+  https://codepen.io/MillerTime/pen/XgpNwb
 
-欢迎提交 `Issues` 和 `Pull requests`
+在遵循原项目许可证与署名要求的前提下，  
+本项目对整体结构与功能进行了整理、扩展与增强，  
+并新增了文字烟花、时钟烟花与跨年倒计时等功能。
+
+This project is a derivative work based on the original Firework Simulator by Caleb Miller.  
+While preserving the original license and attribution,  
+the codebase has been refactored, extended, and enhanced with additional features,  
+including text fireworks, clock fireworks, and New Year countdown functionality.
+
+---
+
+## 许可证 / License
+
+Copyright © 2022 Caleb Miller
+Modifications Copyright © 2025 gamesushi
+
+
+本项目采用 **Apache License 2.0** 许可证。
+
+This project is licensed under the **Apache License, Version 2.0**.
+
+根据该许可证 / Under this license:
+- ✔ 你可以自由使用、修改和分发本项目代码  
+- ✔ 可用于个人或商业用途  
+- ✔ 必须保留原始许可证与版权声明  
+- ✖ 不得暗示原作者为你的衍生项目背书  
+
+You may freely use, modify, and distribute this project for personal or commercial purposes,  
+provided that the original license and copyright notices are retained,  
+and no endorsement by the original author is implied.
+
+许可证全文 / Full license text:  
+https://www.apache.org/licenses/LICENSE-2.0
+
+---

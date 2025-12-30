@@ -1,10 +1,21 @@
 /*
-Copyright © 2022 NianBroken. All rights reserved.
-Github：https://github.com/NianBroken/Firework_Simulator
-Gitee：https://gitee.com/nianbroken/Firework_Simulator
-本项目采用 Apache-2.0 许可证
-简而言之，你可以自由使用、修改和分享本项目的代码，但前提是在其衍生作品中必须保留原始许可证和版权信息，并且必须以相同的许可证发布所有修改过的代码。
+Copyright © 2022 Caleb Miller
+  CodePen: https://codepen.io/MillerTime/pen/XgpNwb
+
+Modifications Copyright © 2025 gamesushi
+GitHub: https://github.com/gamesushi
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 */
+
 
 (function (global) {
 	"use strict";
@@ -25,7 +36,7 @@ Gitee：https://gitee.com/nianbroken/Firework_Simulator
 	var ms = ["msFullscreenEnabled", "msFullscreenElement", "msRequestFullscreen", "msExitFullscreen", "MSFullscreenChange", "MSFullscreenError"];
 
 	// so it doesn't throw if no window or document
-	// This project is copyrighted by NianBroken!
+	// This project is copyrighted by Caleb Miller!
 	var doc = typeof window !== "undefined" && typeof window.document !== "undefined" ? window.document : {};
 
 	var vendor = ("fullscreenEnabled" in doc && Object.keys(key)) || (webkit[0] in doc && webkit) || (moz[0] in doc && moz) || (ms[0] in doc && ms) || [];
@@ -49,11 +60,11 @@ Gitee：https://gitee.com/nianbroken/Firework_Simulator
 		get fullscreenEnabled() {
 			return Boolean(doc[vendor[key.fullscreenEnabled]]);
 		},
-		set fullscreenEnabled(val) {},
+		set fullscreenEnabled(val) { },
 		get fullscreenElement() {
 			return doc[vendor[key.fullscreenElement]];
 		},
-		set fullscreenElement(val) {},
+		set fullscreenElement(val) { },
 		get onfullscreenchange() {
 			return doc[("on" + vendor[key.fullscreenchange]).toLowerCase()];
 		},
