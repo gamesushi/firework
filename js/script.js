@@ -3157,14 +3157,18 @@ const soundManager = {
 							new Promise((resolve) => {
 								this.ctx.decodeAudioData(data, resolve);
 							})
-					);
+					)
+					.catch((err) => {
+						console.error(`Failed to load audio file: ${fileURL}`, err);
+						return null; // Resolve with null to let Promise.all continue
+					});
 
 				filePromises.push(promise);
 				allFilePromises.push(promise);
 			});
 
 			Promise.all(filePromises).then((buffers) => {
-				source.buffers = buffers;
+				source.buffers = buffers.filter((b) => b !== null);
 			});
 		});
 
@@ -3226,6 +3230,10 @@ const soundManager = {
 
 		if (!source) {
 			throw new Error(`Sound of type "${type}" doesn't exist.`);
+		}
+
+		if (!source.buffers || source.buffers.length === 0) {
+			return;
 		}
 
 		const initialVolume = source.volume;
