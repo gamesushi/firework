@@ -1394,6 +1394,20 @@ const ringShell = (size = 1) => {
 	// return Object.assign({}, defaultShell, config);
 };
 
+const heartShell = (size = 1) => {
+	const color = randomColor();
+	return {
+		shellSize: size,
+		heart: true,
+		color,
+		spreadSize: 300 + size * 100,
+		starLife: 900 + size * 200,
+		starCount: 2.2 * PI_2 * (size + 1),
+		glitter: "light",
+		glitterColor: color === COLOR.Gold ? COLOR.Gold : COLOR.White,
+	};
+};
+
 const crossetteShell = (size = 1) => {
 	const color = randomColor({ limitWhite: true });
 	return {
@@ -1517,6 +1531,7 @@ const shellTypes = {
 	"Horse Tail": horsetailShell,
 	Palm: palmShell,
 	Ring: ringShell,
+	Heart: heartShell,
 	Strobe: strobeShell,
 	Willow: willowShell,
 };
@@ -2817,6 +2832,40 @@ class Shell {
 						newSpeed, //speed,
 						// add minor variation to star life
 						this.starLife + Math.random() * this.starLife * this.starLifeVariation
+					);
+
+					if (this.glitter) {
+						star.sparkFreq = sparkFreq;
+						star.sparkSpeed = sparkSpeed;
+						star.sparkLife = sparkLife;
+						star.sparkLifeVariation = sparkLifeVariation;
+						star.sparkColor = this.glitterColor;
+						star.sparkTimer = Math.random() * star.sparkFreq;
+					}
+				});
+			} else if (this.heart) {
+				createParticleArc(0, PI_2, this.starCount, 0, (angle) => {
+					const t = angle;
+					// Heart equations
+					const valX = 16 * Math.pow(Math.sin(t), 3);
+					// Flip Y because canvas Y increases downwards
+					const valY = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+
+					// Scale factor to match reasonable burst size
+					const scale = speed / 16;
+
+					const initSpeedX = valX * scale;
+					const initSpeedY = valY * scale;
+
+					const star = Star.add(
+						x,
+						y,
+						color,
+						0, // angle (not used since we set speedX/Y directly)
+						0, // speed (not used)
+						this.starLife + Math.random() * this.starLife * this.starLifeVariation,
+						initSpeedX, // speedOffX
+						initSpeedY  // speedOffY
 					);
 
 					if (this.glitter) {
