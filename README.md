@@ -19,7 +19,7 @@ creating an immersive and celebratory visual experience.
 ## 预览 / Live Demo
 
 - 🌐 在线预览 / Live Preview  
-  https://gamesushi.github.io/Firework/
+  https://gamesushi.github.io/firework/
 
 ---
 
