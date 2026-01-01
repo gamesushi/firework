@@ -630,6 +630,7 @@ body {
 
 /* Submenu Arrow Indicators */
 .word-shell-label::before,
+.picture-shell-label::before,
 .clock-mode-label::before,
 .background-settings-label::before {
 	content: '';
@@ -646,11 +647,15 @@ body {
 }
 
 .submenu-open.word-shell-label::before,
+.submenu-open.picture-shell-label::before,
 .submenu-open.clock-mode-label::before,
 .submenu-open.background-settings-label::before {
 	transform: rotate(90deg);
 }
 
+.word-shell-submenu.hide,
+.picture-shell-submenu.hide,
+.clock-mode-submenu.hide,
 .background-settings-submenu.hide {
 	display: none;
 }

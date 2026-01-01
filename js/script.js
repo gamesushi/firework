@@ -102,10 +102,10 @@ const translations = {
 		quality: "Quality",
 		sky_lighting: "Sky Lighting",
 		scale: "Scale",
-		text_fireworks: "Text Fireworks",
+		text_fireworks: "Text Firework",
 		add_text: "Add Text",
 		auto_fire: "Auto Fire",
-		fireworks_clock: "Fireworks Clock",
+		fireworks_clock: "Time Firework",
 		time_format: "Time Format",
 		show_countdown: "Show Countdown",
 		countdown_target: "Countdown Target (HH:mm:ss)",
@@ -166,6 +166,14 @@ const translations = {
 		help_time_format_body: "Switch between 12-hour and 24-hour format.",
 		help_show_countdown_header: "Show Countdown",
 		help_show_countdown_body: "Displays a countdown to midnight (or target time) below the clock.",
+		help_picture_fireworks_header: "Picture Fireworks",
+		help_picture_fireworks_body: "Upload images to see them explode as fireworks. Supports transparent PNGs for best results.",
+
+		picture_fireworks: "Pic Firework",
+		upload_picture: "Upload",
+		clear_pictures: "Clear",
+		prompt_delete_picture: "Delete this picture?",
+		restore_picture_color: "Original Color",
 
 		// Dynamic Messages
 		prompt_new_text: "Please enter new text:",
@@ -250,6 +258,14 @@ const translations = {
 		help_time_format_body: "选择12小时制（带AM/PM）或24小时制显示时间。",
 		help_show_countdown_header: "显示倒计时",
 		help_show_countdown_body: "在时间下方显示距离零点的倒计时（时:分:秒）。",
+		help_picture_fireworks_header: "图片烟花",
+		help_picture_fireworks_body: "上传图片，烟花将以图片的形状绽放。建议使用背景透明的 PNG 图片。",
+
+		picture_fireworks: "图片烟花",
+		upload_picture: "上传图片",
+		clear_pictures: "清空",
+		prompt_delete_picture: "删除这张图片？",
+		restore_picture_color: "还原原色",
 
 		// Dynamic Messages
 		prompt_new_text: "请输入新的文字内容：",
@@ -370,6 +386,9 @@ const store = {
 			countdownCelebration: false, //倒计时盛典
 			backgroundImage: "", //背景图片
 			backgroundMode: "cover", //背景填充方式
+			pictureShell: 0, //图片烟花频率 0-1
+			customPictures: [], // Base64 strings of custom pictures
+			pictureOriginalColor: false, // 还原图片原色
 		},
 	},
 
@@ -501,6 +520,26 @@ const store = {
 					config.backgroundImage = data.backgroundImage || "";
 					config.backgroundMode = data.backgroundMode || "cover";
 					break;
+				case "1.9":
+					config.quality = data.quality;
+					config.size = data.size;
+					config.skyLighting = data.skyLighting;
+					config.scaleFactor = data.scaleFactor;
+					config.wordShell = data.wordShell !== undefined ? data.wordShell : 0.3;
+					config.pictureShell = data.pictureShell !== undefined ? data.pictureShell : 0;
+					config.clockMode = data.clockMode !== undefined ? data.clockMode : false;
+					config.timeFormat24 = data.timeFormat24 !== undefined ? data.timeFormat24 : true;
+					config.showCountdown = data.showCountdown !== undefined ? data.showCountdown : false;
+					config.countdownTargetTime = data.countdownTargetTime !== undefined ? data.countdownTargetTime : "00:00:00";
+					config.countdownCelebration = data.countdownCelebration !== undefined ? data.countdownCelebration : false;
+					config.lang = data.lang || "en";
+					config.customWordsZh = data.customWordsZh || [...DEFAULT_WORDS_ZH];
+					config.customWordsEn = data.customWordsEn || [...DEFAULT_WORDS_EN];
+					config.backgroundImage = data.backgroundImage || "";
+					config.backgroundMode = data.backgroundMode || "cover";
+					config.customPictures = data.customPictures || [];
+					config.pictureOriginalColor = data.pictureOriginalColor !== undefined ? data.pictureOriginalColor : false;
+					break;
 				default:
 					throw new Error("version switch should be exhaustive");
 			}
@@ -531,16 +570,19 @@ const store = {
 		localStorage.setItem(
 			"cm_fireworks_data",
 			JSON.stringify({
-				schemaVersion: "1.8",
+				schemaVersion: "1.9",
 				data: {
 					quality: config.quality,
 					size: config.size,
 					skyLighting: config.skyLighting,
 					scaleFactor: config.scaleFactor,
 					wordShell: config.wordShell,
+					pictureShell: config.pictureShell,
 					// Custom words split by language
 					customWordsZh: config.customWordsZh,
 					customWordsEn: config.customWordsEn,
+					customPictures: config.customPictures,
+					pictureOriginalColor: config.pictureOriginalColor,
 					// customWords: config.customWords, // Removed
 					clockMode: config.clockMode,
 					timeFormat24: config.timeFormat24,
@@ -768,6 +810,10 @@ const helpContent = {
 		header: "background_settings_header", // Used key directly as header here for consistency
 		body: "background_settings_body",
 	},
+	pictureShell: {
+		header: "help_picture_fireworks_header",
+		body: "help_picture_fireworks_body",
+	},
 };
 
 const nodeKeyToHelpKey = {
@@ -788,6 +834,7 @@ const nodeKeyToHelpKey = {
 	fullscreenLabel: "fullscreen",
 	longExposureLabel: "longExposure",
 	backgroundSettingsLabel: "backgroundSettings",
+	pictureShellLabel: "pictureShell",
 };
 
 // 程序dom节点列表
@@ -856,6 +903,14 @@ const appNodes = {
 	backgroundUpload: ".background-upload",
 	backgroundMode: ".background-mode",
 	clearBackgroundBtn: ".clear-background-btn",
+	pictureShell: ".picture-shell",
+	pictureShellValue: ".picture-shell-value",
+	pictureShellLabel: ".picture-shell-label",
+	pictureShellSubmenu: ".picture-shell-submenu",
+	pictureList: ".picture-list",
+	pictureUpload: ".picture-upload",
+	clearPicturesBtn: ".clear-pictures-btn",
+	pictureOriginalColor: ".picture-original-color",
 };
 
 // Convert appNodes selectors to dom nodes
@@ -887,6 +942,9 @@ function renderApp(state) {
 	appNodes.shellSize.value = state.config.size;
 	appNodes.wordShell.value = state.config.wordShell;
 	appNodes.wordShellValue.textContent = `${(state.config.wordShell * 100).toFixed(0)}%`;
+	appNodes.pictureShell.value = state.config.pictureShell;
+	appNodes.pictureShellValue.textContent = `${(state.config.pictureShell * 100).toFixed(0)}%`;
+	appNodes.pictureOriginalColor.checked = state.config.pictureOriginalColor;
 	appNodes.autoLaunch.checked = state.config.autoLaunch;
 	appNodes.clockMode.checked = state.config.clockMode;
 	appNodes.timeFormat.value = state.config.timeFormat24 ? "24" : "12";
@@ -915,11 +973,13 @@ function renderApp(state) {
 	appNodes.wordShellSubmenu.classList.toggle("hide", state.subMenuOpen !== "wordShell");
 	appNodes.clockModeSubmenu.classList.toggle("hide", state.subMenuOpen !== "clockMode");
 	appNodes.backgroundSettingsSubmenu.classList.toggle("hide", state.subMenuOpen !== "backgroundSettings");
+	appNodes.pictureShellSubmenu.classList.toggle("hide", state.subMenuOpen !== "pictureShell");
 
 	// 更新标签的激活状态（控制箭头方向）
 	appNodes.wordShellLabel.classList.toggle("submenu-open", state.subMenuOpen === "wordShell");
 	appNodes.clockModeLabel.classList.toggle("submenu-open", state.subMenuOpen === "clockMode");
 	appNodes.backgroundSettingsLabel.classList.toggle("submenu-open", state.subMenuOpen === "backgroundSettings");
+	appNodes.pictureShellLabel.classList.toggle("submenu-open", state.subMenuOpen === "pictureShell");
 
 	if (state.subMenuOpen === "wordShell") {
 		appNodes.wordList.innerHTML = "";
@@ -993,6 +1053,51 @@ function renderApp(state) {
 			appNodes.wordList.appendChild(item);
 		});
 	}
+
+	if (state.subMenuOpen === "pictureShell") {
+		appNodes.pictureList.innerHTML = "";
+		state.config.customPictures.forEach((imgSrc, index) => {
+			const item = document.createElement("div");
+			item.style.position = "relative";
+			item.style.width = "40px";
+			item.style.height = "40px";
+
+			const img = document.createElement("img");
+			img.src = imgSrc;
+			img.style.width = "100%";
+			img.style.height = "100%";
+			img.style.objectFit = "cover";
+			img.style.borderRadius = "4px";
+			img.style.border = "1px solid #fff";
+
+			const delBtn = document.createElement("div");
+			delBtn.innerHTML = "×";
+			delBtn.style.position = "absolute";
+			delBtn.style.top = "-5px";
+			delBtn.style.right = "-5px";
+			delBtn.style.background = "red";
+			delBtn.style.color = "white";
+			delBtn.style.borderRadius = "50%";
+			delBtn.style.width = "16px";
+			delBtn.style.height = "16px";
+			delBtn.style.fontSize = "12px";
+			delBtn.style.display = "flex";
+			delBtn.style.alignItems = "center";
+			delBtn.style.justifyContent = "center";
+			delBtn.style.cursor = "pointer";
+
+			delBtn.onclick = () => {
+				if (confirm(getTranslation("prompt_delete_picture"))) {
+					const nextPictures = state.config.customPictures.filter((_, i) => i !== index);
+					updateConfig({ customPictures: nextPictures });
+				}
+			};
+
+			item.appendChild(img);
+			item.appendChild(delBtn);
+			appNodes.pictureList.appendChild(item);
+		});
+	}
 }
 
 store.subscribe(renderApp);
@@ -1020,6 +1125,8 @@ function getConfigFromDOM() {
 		shell: appNodes.shellType.value,
 		size: appNodes.shellSize.value,
 		wordShell: parseFloat(appNodes.wordShell.value),
+		pictureShell: parseFloat(appNodes.pictureShell.value),
+		pictureOriginalColor: appNodes.pictureOriginalColor.checked,
 		autoLaunch: appNodes.autoLaunch.checked,
 		clockMode: appNodes.clockMode.checked,
 		timeFormat24: appNodes.timeFormat.value === "24",
@@ -1045,6 +1152,8 @@ appNodes.quality.addEventListener("input", updateConfigNoEvent);
 appNodes.shellType.addEventListener("input", updateConfigNoEvent);
 appNodes.shellSize.addEventListener("input", updateConfigNoEvent);
 appNodes.wordShell.addEventListener("input", updateConfigNoEvent);
+appNodes.pictureShell.addEventListener("input", updateConfigNoEvent);
+appNodes.pictureOriginalColor.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.autoLaunch.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.clockMode.addEventListener("click", () => setTimeout(updateConfig, 0));
 appNodes.timeFormat.addEventListener("input", updateConfigNoEvent);
@@ -1082,6 +1191,37 @@ appNodes.backgroundSettingsLabel.addEventListener("click", (e) => {
 	console.log("点击了背景设置标签");
 	const currentSubMenu = store.state.subMenuOpen;
 	store.setState({ subMenuOpen: currentSubMenu === "backgroundSettings" ? false : "backgroundSettings" });
+});
+
+appNodes.pictureShellLabel.addEventListener("click", (e) => {
+	e.preventDefault();
+	console.log("点击了图片烟花标签");
+	const currentSubMenu = store.state.subMenuOpen;
+	store.setState({ subMenuOpen: currentSubMenu === "pictureShell" ? false : "pictureShell" });
+});
+
+appNodes.pictureUpload.addEventListener("change", (e) => {
+	const file = e.target.files[0];
+	if (file) {
+		const reader = new FileReader();
+		reader.onload = (event) => {
+			const config = store.state.config;
+			// 简单的限制：最多10张图片
+			if (config.customPictures.length >= 10) {
+				alert("Max 10 pictures!");
+				return;
+			}
+			const nextPictures = [...config.customPictures, event.target.result];
+			updateConfig({ customPictures: nextPictures });
+		};
+		reader.readAsDataURL(file);
+	}
+});
+
+appNodes.clearPicturesBtn.addEventListener("click", () => {
+	if (confirm(getTranslation("prompt_delete_picture"))) {
+		updateConfig({ customPictures: [] });
+	}
 });
 
 // 添加文字
@@ -2080,9 +2220,9 @@ function update(frameTime, lag) {
 	const starDragHeavy = 1 - (1 - Star.airDragHeavy) * speed;
 	const sparkDrag = 1 - (1 - Spark.airDrag) * speed;
 	const gAcc = (timeStep / 1000) * GRAVITY;
-	COLOR_CODES_W_INVIS.forEach((color) => {
-		// 绘制星花
-		const stars = Star.active[color];
+
+	// Helper to update particle list
+	const updateParticles = (stars) => {
 		for (let i = stars.length - 1; i >= 0; i = i - 1) {
 			const star = stars[i];
 			// Only update each star once per frame. Since color can change, it's possible a star could update twice without this, leading to a "jump".
@@ -2135,7 +2275,13 @@ function update(frameTime, lag) {
 						star.colorChanged = true;
 						star.color = star.secondColor;
 						stars.splice(i, 1);
-						Star.active[star.secondColor].push(star);
+						// Move to correct bucket (standard or custom)
+						if (Star.active[star.secondColor]) {
+							Star.active[star.secondColor].push(star);
+						} else {
+							Star.active["custom"].push(star);
+						}
+
 						if (star.secondColor === INVISIBLE) {
 							star.sparkFreq = 0;
 						}
@@ -2148,9 +2294,16 @@ function update(frameTime, lag) {
 				}
 			}
 		}
+	};
 
-		// 绘制火花
-		const sparks = Spark.active[color];
+	// Update stars
+	Object.keys(Star.active).forEach((color) => {
+		const stars = Star.active[color];
+		updateParticles(stars);
+	});
+
+	// 绘制火花
+	const updateSparks = (sparks) => {
 		for (let i = sparks.length - 1; i >= 0; i = i - 1) {
 			const spark = sparks[i];
 			spark.life -= timeStep;
@@ -2167,6 +2320,12 @@ function update(frameTime, lag) {
 				spark.speedY += gAcc;
 			}
 		}
+	};
+
+	// Update sparks
+	Object.keys(Spark.active).forEach((color) => {
+		const sparks = Spark.active[color];
+		updateSparks(sparks);
 	});
 
 	render(speed);
@@ -2220,8 +2379,12 @@ function render(speed) {
 	mainCtx.strokeStyle = "#fff";
 	mainCtx.lineWidth = 1;
 	mainCtx.beginPath();
-	COLOR_CODES.forEach((color) => {
+
+	// Draw stars
+	Object.keys(Star.active).forEach((color) => {
 		const stars = Star.active[color];
+		// Skip invisible particles or empty arrays
+		if (color === INVISIBLE || stars.length === 0) return;
 
 		trailsCtx.strokeStyle = color;
 		trailsCtx.beginPath();
@@ -2236,19 +2399,51 @@ function render(speed) {
 		});
 		trailsCtx.stroke();
 	});
+
+	// Draw custom color stars (individually) - Removed
+	const customStars = []; // Star.active["custom"];
+	customStars.forEach((star) => {
+		if (star.visible) {
+			trailsCtx.strokeStyle = star.color;
+			trailsCtx.lineWidth = star.size;
+			trailsCtx.beginPath();
+			trailsCtx.moveTo(star.x, star.y);
+			trailsCtx.lineTo(star.prevX, star.prevY);
+			trailsCtx.stroke();
+
+			mainCtx.moveTo(star.x, star.y);
+			mainCtx.lineTo(star.x - star.speedX * 1.6, star.y - star.speedY * 1.6);
+		}
+	});
+
 	mainCtx.stroke();
 
 	// Draw sparks
 	trailsCtx.lineWidth = Spark.drawWidth;
 	trailsCtx.lineCap = "butt";
-	COLOR_CODES.forEach((color) => {
+
+	// Draw sparks
+	Object.keys(Spark.active).forEach((color) => {
 		const sparks = Spark.active[color];
+		// Skip invisible particles or empty arrays
+		if (color === INVISIBLE || sparks.length === 0) return;
+
 		trailsCtx.strokeStyle = color;
 		trailsCtx.beginPath();
 		sparks.forEach((spark) => {
 			trailsCtx.moveTo(spark.x, spark.y);
 			trailsCtx.lineTo(spark.prevX, spark.prevY);
 		});
+		trailsCtx.stroke();
+	});
+
+	// Draw custom color sparks - Removed
+	const customSparks = []; // Spark.active["custom"];
+	customSparks.forEach((spark) => {
+		trailsCtx.strokeStyle = spark.color;
+		trailsCtx.beginPath();
+		trailsCtx.moveTo(spark.x, spark.y);
+		trailsCtx.lineTo(spark.prevX, spark.prevY);
 		trailsCtx.stroke();
 	});
 
@@ -2472,6 +2667,160 @@ const TextFireworkBuilder = {
 			const py = centerY + (point.y - offsetY);
 			createTextParticle(px, py);
 		}
+	}
+};
+
+const PictureFireworkBuilder = {
+	_sharedCanvas: document.createElement("canvas"),
+
+	getTemplate(imgSrc) {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.crossOrigin = "Anonymous";
+			img.onload = () => {
+				let width = img.width;
+				let height = img.height;
+				const maxSize = 150;
+				if (width > maxSize || height > maxSize) {
+					if (width > height) {
+						height = Math.round(height * (maxSize / width));
+						width = maxSize;
+					} else {
+						width = Math.round(width * (maxSize / height));
+						height = maxSize;
+					}
+				}
+
+				if (this._sharedCanvas.width < width) this._sharedCanvas.width = width;
+				if (this._sharedCanvas.height < height) this._sharedCanvas.height = height;
+
+				const ctx = this._sharedCanvas.getContext("2d", { willReadFrequently: true });
+				ctx.clearRect(0, 0, width, height);
+				ctx.drawImage(img, 0, 0, width, height);
+
+				const imageData = ctx.getImageData(0, 0, width, height);
+				const data = imageData.data;
+				const points = [];
+				const density = 2;
+
+				// 1. Check for transparency
+				let hasTransparency = false;
+				for (let i = 3; i < data.length; i += 4) {
+					if (data[i] < 250) {
+						hasTransparency = true;
+						break;
+					}
+				}
+
+				// 2. Determine threshold and comparison logic
+				let isKeepPixel;
+				if (hasTransparency) {
+					// Use Alpha channel
+					isKeepPixel = (r, g, b, a) => a > 128;
+				} else {
+					// Guess background color from corners
+					const getPixel = (x, y) => {
+						const i = (y * width + x) * 4;
+						return [data[i], data[i + 1], data[i + 2]];
+					};
+					const corners = [
+						getPixel(0, 0),
+						getPixel(width - 1, 0),
+						getPixel(0, height - 1),
+						getPixel(width - 1, height - 1)
+					];
+					// Average background color
+					const bg = { r: 0, g: 0, b: 0 };
+					corners.forEach(c => { bg.r += c[0]; bg.g += c[1]; bg.b += c[2]; });
+					bg.r /= 4; bg.g /= 4; bg.b /= 4;
+
+					const threshold = 32; // Color distance threshold
+
+					isKeepPixel = (r, g, b, a) => {
+						const dist = Math.sqrt(
+							Math.pow(r - bg.r, 2) +
+							Math.pow(g - bg.g, 2) +
+							Math.pow(b - bg.b, 2)
+						);
+						return dist > threshold;
+					};
+				}
+
+				for (let r = 0; r < height; r += density) {
+					for (let c = 0; c < width; c += density) {
+						const i = (r * width + c) * 4;
+						const red = data[i];
+						const green = data[i + 1];
+						const blue = data[i + 2];
+						const alpha = data[i + 3];
+
+						if (isKeepPixel(red, green, blue, alpha)) {
+							// Store color info (quantized to reduce unique colors/draw calls)
+							const q = (v) => Math.round(v / 16) * 16;
+							const qColor = `rgb(${q(red)},${q(green)},${q(blue)})`;
+							points.push({ x: c, y: r, color: qColor });
+						}
+					}
+				}
+
+				resolve({ width, height, points });
+			};
+			img.onerror = reject;
+			img.src = imgSrc;
+		});
+	},
+
+	createBurst(imgSrc, shellContext, centerX, centerY) {
+		this.getTemplate(imgSrc).then(template => {
+			const offsetX = template.width / 2;
+			const offsetY = template.height / 2;
+			let baseColor;
+			if (typeof shellContext.color === "string" && shellContext.color !== "random") {
+				baseColor = shellContext.color;
+			} else {
+				baseColor = randomColor();
+			}
+
+			const strobeColor = randomColor();
+			const useOriginalColor = store.state.config.pictureOriginalColor;
+
+			const createTextParticle = (x, y, colorOverride) => {
+				const speed = Math.random() * 0.1 + 0.05;
+				const particleColor = colorOverride || baseColor;
+
+				const star = Star.add(
+					x, y,
+					particleColor,
+					Math.random() * 2 * Math.PI,
+					speed,
+					shellContext.starLife + Math.random() * shellContext.starLife * shellContext.starLifeVariation + speed * 1000,
+					0, 0
+				);
+
+				if (!useOriginalColor) {
+					star.transitionTime = shellContext.starLife * (Math.random() * 0.08 + 0.46);
+					star.strobe = true;
+					star.strobeFreq = Math.random() * 20 + 40;
+					star.secondColor = strobeColor;
+				}
+
+				Spark.add(
+					x, y,
+					particleColor,
+					Math.random() * 2 * Math.PI,
+					Math.pow(Math.random(), 0.05) * 0.4,
+					shellContext.starLife + Math.random() * shellContext.starLife * shellContext.starLifeVariation + 2000
+				);
+			};
+
+			for (const point of template.points) {
+				createTextParticle(
+					centerX + (point.x - offsetX),
+					centerY + (point.y - offsetY),
+					useOriginalColor ? point.color : null
+				);
+			}
+		}).catch(e => console.error("Failed to load picture firework:", e));
 	}
 };
 
@@ -2905,14 +3254,20 @@ class Shell {
 		if (!this.disableWord) {
 			const config = store.state.config;
 			let textToDisplay = null;
+			let pictureToDisplay = null;
+
 			if (config.clockMode) {
 				textToDisplay = getCurrentTimeString();
 			} else if (Math.random() < config.wordShell) {
 				textToDisplay = getRandomWord();
+			} else if (config.customPictures.length > 0 && Math.random() < config.pictureShell) {
+				pictureToDisplay = config.customPictures[Math.floor(Math.random() * config.customPictures.length)];
 			}
 
 			if (textToDisplay) {
 				TextFireworkBuilder.createBurst(textToDisplay, this, x, y);
+			} else if (pictureToDisplay) {
+				PictureFireworkBuilder.createBurst(pictureToDisplay, this, x, y);
 			}
 		}
 
@@ -3081,6 +3436,10 @@ const Star = {
 			transitionTime:星花生命周期结束之前发生变化的时间
 		*/
 
+		// Check if color is a valid key, if not, create it
+		if (!this.active[color]) {
+			this.active[color] = [];
+		}
 		this.active[color].push(instance);
 		return instance;
 	},
@@ -3128,6 +3487,10 @@ const Spark = {
 		instance.speedY = Math.cos(angle) * speed;
 		instance.life = life;
 
+		// Check if color is a valid key, if not, create it
+		if (!this.active[color]) {
+			this.active[color] = [];
+		}
 		this.active[color].push(instance);
 		return instance;
 	},

@@ -124,6 +124,34 @@
 								<button type="button" class="add-word-btn" data-i18n="add_text">Add Text</button>
 							</div>
 						</div>
+						<div class="form-option form-option--range">
+							<label class="picture-shell-label" style="cursor: pointer;"
+								data-i18n="picture_fireworks">Picture
+								Fireworks</label>
+							<input class="picture-shell" type="range" min="0" max="1" step="0.01" value="0" />
+							<span class="picture-shell-value">0%</span>
+						</div>
+						<div class="picture-shell-submenu hide">
+							<div class="picture-list"
+								style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;"></div>
+							<div class="word-actions"
+								style="display: flex; align-items: center; justify-content: flex-end;">
+								<div class="form-option form-option--checkbox"
+									style="margin: 0 15px 0 0; min-height: auto;">
+									<label class="picture-original-color-label"
+										style="width: auto; padding-right: 8px; font-size: 0.9em;"
+										data-i18n="restore_picture_color">Original Color</label>
+									<input class="picture-original-color" type="checkbox"
+										style="width: 20px; height: 20px;" />
+								</div>
+								<label class="add-word-btn" style="cursor: pointer; display: inline-block;">
+									<span data-i18n="upload_picture">Upload</span>
+									<input type="file" class="picture-upload" accept="image/*" style="display: none;" />
+								</label>
+								<button type="button" class="clear-pictures-btn add-word-btn" style="margin-left: 10px;"
+									data-i18n="clear_pictures">Clear</button>
+							</div>
+						</div>
 						<div class="form-option form-option--checkbox">
 							<label class="auto-launch-label" data-i18n="auto_fire">Auto Fire</label>
 							<input class="auto-launch" type="checkbox" />
